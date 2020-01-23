@@ -334,6 +334,125 @@ class MainFrame(tk.Frame):
             parent.user_list=[]
             parent.GetUserList()
             search('',parent.user_list)
+        def StackAdd():
+            def yeah():
+                for user in parent.selected_users:
+                    for stack in parent.stacks:
+                        if stack['var'].get()==1 and stack['Name'] not in user['Stacks']:
+                            parent.client.batch_associate_user_stack(UserStackAssociations=[{
+                                'StackName':stack['Name'],
+                                'UserName':user['UserName'],
+                                'AuthenticationType':"USERPOOL",
+                                'SendEmailNotification':bool(email.get())
+                                }])
+                search('',parent.user_list)
+                for stack in parent.stacks:
+                    stack['var'].set(0)
+                confirm.destroy()
+            def no():
+                confirm.destroy()
+            confirm=tk.Toplevel()
+            confirm.attributes('-topmost', 1)
+            confirm.wm_title("Confirm Changes")
+            confirm.lift()
+            yes=tk.Label(confirm, text="Would you like to make the following changes?")
+            yes.pack(side=tk.TOP, anchor=tk.W, padx=5, pady=5)
+
+            info_frame=tk.Frame(confirm)
+            info_frame.pack(anchor=tk.W, padx=5)
+            user_frame=tk.Frame(info_frame)
+            user_frame.pack(side=tk.LEFT, anchor=tk.N)
+            user_label=tk.Label(user_frame, text="Users", font=(None,  9, 'bold'))
+            user_label.pack()
+            for user in parent.selected_users:
+                u=tk.Label(user_frame, text=user['FirstName']+' '+user['LastName'] +' ('+user['UserName']+')')
+                u.pack(anchor=tk.W)
+                
+            border_frame=tk.Frame(info_frame, highlightthickness=3, highlightbackground="gray75")
+            border_frame.pack(fill=tk.Y,padx=5,expand=True,anchor=tk.W, side=tk.LEFT)
+            
+            stack_frame=tk.Frame(info_frame)
+            stack_frame.pack(side=tk.RIGHT,anchor=tk.N)
+            stack_label=tk.Label(stack_frame, text="Stacks", font=(None, 9, 'bold'))
+            stack_label.pack()
+            for stack in parent.stacks:
+                ind_stack_frame=tk.Frame(stack_frame)
+                ind_stack_frame.pack(anchor=tk.W)
+                if stack['var'].get()==1 and stack['Name'] not in user['Stacks']:
+                    stack_label=tk.Label(ind_stack_frame, text=stack['Name'])
+                    stack_label.pack(side=tk.RIGHT)
+                    check=tk.Label(ind_stack_frame, text=u'\u2713', foreground="green")
+                    check.pack(side=tk.LEFT)
+            confirm.update()
+            button_frame=tk.Frame(confirm)
+            button_frame.pack(side=tk.BOTTOM,pady=(10,5))
+            email=tk.IntVar()
+            send_email=tk.Checkbutton(button_frame, text="Send email notification?",var=email)
+            send_email.pack(side=tk.TOP)
+            confirm_button=tk.Button(button_frame, text='Apply', command=lambda:yeah(), width=10)
+            confirm_button.pack(side=tk.RIGHT)
+            cancel_button=tk.Button(button_frame, text='Cancel', command=lambda:no(), width=10)
+            cancel_button.pack(side=tk.LEFT)
+        def StackRemove():
+            def yeah():
+                for user in parent.selected_users:
+                    for stack in parent.stacks:
+                        if stack['var'].get()==1 and stack['Name'] in user['Stacks']:
+                            parent.client.batch_disassociate_user_stack(UserStackAssociations=[{
+                                'StackName':stack['Name'],
+                                'UserName':user['UserName'],
+                                'AuthenticationType':"USERPOOL",
+                                'SendEmailNotification':bool(email.get())
+                                }])
+                search('',parent.user_list)
+                for stack in parent.stacks:
+                    stack['var'].set(0)
+                confirm.destroy()
+            def no():
+                confirm.destroy()
+            confirm=tk.Toplevel()
+            confirm.attributes('-topmost', 1)
+            confirm.wm_title("Confirm Changes")
+            confirm.lift()
+            yes=tk.Label(confirm, text="Would you like to make the following changes?")
+            yes.pack(side=tk.TOP, anchor=tk.W, padx=5, pady=5)
+
+            info_frame=tk.Frame(confirm)
+            info_frame.pack(anchor=tk.W, padx=5)
+            user_frame=tk.Frame(info_frame)
+            user_frame.pack(side=tk.LEFT, anchor=tk.N)
+            user_label=tk.Label(user_frame, text="Users", font=(None,  9, 'bold'))
+            user_label.pack()
+            for user in parent.selected_users:
+                u=tk.Label(user_frame, text=user['FirstName']+' '+user['LastName'] +' ('+user['UserName']+')')
+                u.pack(anchor=tk.W)
+                
+            border_frame=tk.Frame(info_frame, highlightthickness=3, highlightbackground="gray75")
+            border_frame.pack(fill=tk.Y,padx=5,expand=True,anchor=tk.W, side=tk.LEFT)
+            
+            stack_frame=tk.Frame(info_frame)
+            stack_frame.pack(side=tk.RIGHT,anchor=tk.N)
+            stack_label=tk.Label(stack_frame, text="Stacks", font=(None, 9, 'bold'))
+            stack_label.pack()
+            for stack in parent.stacks:
+                ind_stack_frame=tk.Frame(stack_frame)
+                ind_stack_frame.pack(anchor=tk.W)
+                if stack['var'].get()==1 and stack['Name'] in user['Stacks']:
+                    stack_label=tk.Label(ind_stack_frame, text=stack['Name'])
+                    stack_label.pack(side=tk.RIGHT)
+                    cross=tk.Label(ind_stack_frame,  text=u'\u2717', foreground='red')
+                    cross.pack(side=tk.LEFT)
+            confirm.update()
+            button_frame=tk.Frame(confirm)
+            button_frame.pack(side=tk.BOTTOM,pady=(10,5))
+            email=tk.IntVar()
+            send_email=tk.Checkbutton(button_frame, text="Send email notification?",var=email)
+            send_email.pack(side=tk.TOP)
+            confirm_button=tk.Button(button_frame, text='Apply', command=lambda:yeah(), width=10)
+            confirm_button.pack(side=tk.RIGHT)
+            cancel_button=tk.Button(button_frame, text='Cancel', command=lambda:no(), width=10)
+            cancel_button.pack(side=tk.LEFT)
+            
             
         #Initial window creation
 
@@ -378,8 +497,14 @@ class MainFrame(tk.Frame):
         stacks_warning=tk.Label(stacks_frame, text="Stacks uninitialized")
         stacks_warning.pack(side="top", fill="x")
 
-        stacks_apply=tk.Button(stacks_frame, text="Apply",command=lambda:stack_apply(parent.selected_users))
-        stacks_apply.pack(anchor=tk.SW, side=tk.BOTTOM, fill=tk.X)
+        stacks_buttons=tk.Frame(stacks_frame)
+        stacks_buttons.pack(side=tk.BOTTOM, fill=tk.X, expand=True)
+        stacks_apply=tk.Button(stacks_buttons, text="Set",command=lambda:stack_apply(parent.selected_users))
+        stacks_apply.pack(anchor=tk.SW, side=tk.LEFT, fill=tk.X, expand=True)
+        stacks_add=tk.Button(stacks_buttons, text="Add",command=lambda:StackAdd())
+        stacks_add.pack(anchor=tk.SW, side=tk.LEFT, fill=tk.X, expand=True)
+        stacks_remove=tk.Button(stacks_buttons, text="Remove",command=lambda:StackRemove())
+        stacks_remove.pack(anchor=tk.SW, side=tk.LEFT, fill=tk.X, expand=True)
 
         self.user_info_pane=ttk.Labelframe(control_pane, text="User info")
         self.user_info_pane.pack(side=tk.TOP, fill=tk.Y, anchor=tk.N, expand=True)
@@ -655,7 +780,7 @@ class MainFrame(tk.Frame):
                                              command=lambda:remove_all_warning.destroy())
             remove_all_quit_button.pack(side=tk.LEFT)
             remove_all_confirm_button=tk.Button(remove_all_warning, text="Proceed",
-                                                command=remove_all_warning.destroy())
+                                                command=lambda:remove_all_warning.destroy())
             remove_all_confirm_button.pack(side=tk.LEFT)
             
         remove_errors=[]
