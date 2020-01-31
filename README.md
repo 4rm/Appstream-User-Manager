@@ -28,9 +28,8 @@ GUI alternative to managing Appstream users \#UNDER CONSTRUCTION\#
 * Rate limiting happens <i>a lot</i>. Had to add 1 second delays all over the place.
 
 ## <a name="Future">Future Improvements</a>
-* Roster functionality is not added yet (potential .txt file loading?)
+* Add a progress window for batch removal and roster adding
 * Give option of remembering user credentials
 * General beautification (add icons, favicons, etc)
-* More stack manipulation options
 * Potential bucket integration?
 * Standalone executable 
