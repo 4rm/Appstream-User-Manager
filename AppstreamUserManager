@@ -23,6 +23,7 @@ class MainApplication(tk.Frame):
         self.user_list=[]
         self.stacks=[]
         self.selected_users=[]
+        self.roster=[]
         
         self.main_frame=MainFrame(self)
         self.main_frame.pack(side="right", fill="y")
@@ -48,8 +49,8 @@ class MainApplication(tk.Frame):
                 load=tk.Label(self.holding_frame, text="Loading Users: "+str(len(self.user_list)))
                 load.pack(anchor=tk.N)
                 self.holding_frame.update()
-            except:
-                None
+            except Exception as e:
+                print(e)
             if 'NextToken' in user_page:
                 load.destroy()
                 self.GetUserList(user_page['NextToken'],self.holding_frame)
@@ -74,8 +75,8 @@ class CredentialsFrame(tk.Frame):
             try:
                 self.blank_warning.destroy()
                 self.login_warning.destroy()
-            except:
-                None
+            except Exception as e:
+                print(e)
                 
             self.blank_warning=tk.Label(popup, text="Fields cannot be left blank",  foreground="red")
             
@@ -514,7 +515,8 @@ class MainFrame(tk.Frame):
         self.user_info_yscrollbar=tk.Scrollbar(self.user_info_pane, command=self.user_info_canvas.yview)
         self.user_info_yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.user_info_xscrollbar=tk.Scrollbar(self.user_info_pane, orient=tk.HORIZONTAL, command=self.user_info_canvas.xview)
+        self.user_info_xscrollbar=tk.Scrollbar(self.user_info_pane, orient=tk.HORIZONTAL,
+                                               command=self.user_info_canvas.xview)
         self.user_info_xscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.user_info_canvas.configure(yscrollcommand=self.user_info_yscrollbar.set)
@@ -523,7 +525,9 @@ class MainFrame(tk.Frame):
         self.user_info_canvas.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y, expand=True)
 
         self.user_info_frame=tk.Frame(self.user_info_canvas)
-        self.user_info_canvas_frame=self.user_info_canvas.create_window((0,0), window=self.user_info_frame, anchor='nw')
+        self.user_info_canvas_frame=self.user_info_canvas.create_window((0,0),
+                                                                        window=self.user_info_frame,
+                                                                        anchor='nw')
         self.user_info_frame.bind('<Configure>', lambda event:on_configure(event,self.user_info_canvas))
         self.user_info_frame.bind("<Enter>", lambda event:_on_mousewheel(event,self.user_info_canvas))
         self.user_info_frame.bind("<Leave>", lambda event:_off_mousewheel(event, self.user_info_canvas))
@@ -554,7 +558,6 @@ class MainFrame(tk.Frame):
                 parent.GetUserList()
                 for stack in parent.stacks:
                     if stack['var2'].get()==1:
-                        print(stack['Name'])
                         parent.client.batch_associate_user_stack(UserStackAssociations=[{
                             'StackName':stack['Name'],
                             'UserName':add_individual_UserName_entry.get(),
@@ -569,7 +572,34 @@ class MainFrame(tk.Frame):
                 
                 search('',parent.user_list)
             elif add_roster.get()==1:
-                print("adding roster")
+                try:
+                    for child in self.r.winfo_children():
+                        child.destroy()
+                    self.r.destroy()
+                    for student in parent.roster:
+                        parent.client.create_user(UserName=student['User Name'],
+                                                  FirstName=student['First Name'],
+                                                  LastName=student['Last Name'],
+                                                  AuthenticationType="USERPOOL"
+                                                  )
+                        time.sleep(1)
+                    for stack in parent.stacks:
+                        if stack['var2'].get()==1:
+                            for student in parent.roster:
+                                parent.client.batch_associate_user_stack(UserStackAssociations=[{
+                                    'StackName':stack['Name'],
+                                    'UserName':student['User Name'],
+                                    'AuthenticationType':"USERPOOL",
+                                    'SendEmailNotification':True
+                                    }])
+                            stack['var2'].set(0)
+                    parent.roster.clear()
+                    self.destroy_me=tk.Frame(roster_frame)
+                    self.destroy_me.pack(side=tk.TOP, fill=tk.BOTH, anchor=tk.N, expand=True)
+                    placeholder_canvas=tk.Canvas(self.destroy_me)
+                    placeholder_canvas.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+                except:
+                    None
             elif add_roster.get()==0 and add_individual.get()==0:
                 error=tk.Toplevel()
                 error.attributes('-topmost', 1)
@@ -581,10 +611,79 @@ class MainFrame(tk.Frame):
                 okay_button.pack(anchor=tk.CENTER, pady=5)
         def openfile():
             try:
-                roster=filedialog.askopenfilename(title="Select roster",
-                                                  filetypes=(("CSV","*.csv"),
-                                                             ("Excel","*.xls .xlsx"),
-                                                             ("All files","*.*")))
+                file_loc=filedialog.askopenfilename(title="Select roster",
+                                                    filetypes=(("CSV","*.csv"),
+                                                                ("All files","*.*")))
+                try:
+                    roster=pd.read_csv(file_loc, header=None)
+                    try:
+                        self.destroy_me.destroy()
+                        for child in self.r.winfo_children():
+                            child.destroy()
+                        self.r.destroy()
+                    except Exception as e:
+                        print(e)
+                except Exception as e:
+                    print(e)
+                
+                stud_locate=[]
+                nid_locate=[]
+                for col in roster.columns:
+                    for row in roster[col].items():
+                        if "Student".lower() in str(row).lower():
+                            nxt_val=roster.iloc[row[0]+1][col]
+                            if nxt_val is not ('0' or "nan" or isinstance(nxt_val,str)):
+                                stud_locate.append([row[0],col])
+                            
+                for col in roster.columns:
+                    for row in roster[col].items():
+                        if "Net ID".lower() in str(row).lower():
+                            nxt_val=roster.iloc[row[0]+1][col]
+                            if nxt_val is not ('0' or "nan" or not isinstance(nxt_val,str)):
+                                nid_locate.append([row[0],col])
+
+                Students=roster[stud_locate[0][1]].tolist()[stud_locate[0][0]+1:]
+                ids=roster[nid_locate[0][1]].tolist()[nid_locate[0][0]+1:]
+
+                for i,name in enumerate(Students):
+                    new_name=name.split(' ',1)
+                    parent.roster.append({'First Name':new_name[1],
+                                            'Last Name':new_name[0],
+                                            'User Name':ids[i]+'@scarletmail.rutgers.edu'
+                                            })
+
+                self.r=tk.Frame(roster_frame)
+                self.r.pack(side=tk.TOP, fill=tk.BOTH, anchor=tk.N, expand=True)
+                temp_canvas=tk.Canvas(self.r)
+                myframe=tk.Frame(temp_canvas)
+                
+                add_roster_yscrollbar=tk.Scrollbar(self.r, command=temp_canvas.yview)
+                add_roster_yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+                add_roster_xscrollbar=tk.Scrollbar(self.r, orient=tk.HORIZONTAL, command=temp_canvas.xview)
+                add_roster_xscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+                
+                temp_canvas.config(scrollregion=temp_canvas.bbox(tk.ALL))
+                
+                temp_canvas.configure(yscrollcommand=add_roster_yscrollbar.set)
+                temp_canvas.configure(xscrollcommand=add_roster_xscrollbar.set)
+                
+                temp_canvas.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+                temp_canvas.create_window((0,0), window=myframe, anchor='nw')
+
+                def onFrameConfigure(event,canvas):
+                    canvas.configure(scrollregion=canvas.bbox("all"))
+
+                myframe.bind("<Configure>", lambda event, canvas=temp_canvas: onFrameConfigure(event,canvas))
+                self.r.bind("<Enter>", lambda event:_on_mousewheel(event,temp_canvas))
+                self.r.bind("<Leave>", lambda event:_off_mousewheel(event,temp_canvas))
+                for item in parent.roster:
+                    roster_student_canvas=tk.Canvas(myframe, height=10, width=450)
+                    roster_student_canvas.pack(fill=tk.X,expand=True)
+                    roster_student_canvas.create_text(3,0,text=item['First Name'],anchor=tk.NW, font=(None, 8))
+                    roster_student_canvas.create_text(140,0,text=item["Last Name"],anchor=tk.NW, font=(None, 8))
+                    roster_student_canvas.create_text(260,0,text=item["User Name"],anchor=tk.NW, font=(None, 8))
+                
             except Exception as e:
                 print(str(e)+"none selected")
                         
@@ -616,25 +715,11 @@ class MainFrame(tk.Frame):
         roster_header_canvas.create_text(3,0,text="First Name",anchor=tk.NW, font=(None, 9, 'bold'))
         roster_header_canvas.create_text(140,0,text="Last Name",anchor=tk.NW, font=(None, 9, 'bold'))
         roster_header_canvas.create_text(260,0,text="User Name",anchor=tk.NW, font=(None, 9, 'bold'))
-        
-        add_roster_canvas=tk.Canvas(roster_frame, background="white")
 
-        add_roster_yscrollbar=tk.Scrollbar(roster_frame, command=add_roster_canvas.yview)
-        add_roster_yscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        add_roster_xscrollbar=tk.Scrollbar(roster_frame, orient=tk.HORIZONTAL, command=add_roster_canvas.xview)
-        add_roster_xscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
-
-        add_roster_canvas.configure(yscrollcommand=add_roster_yscrollbar.set)
-        add_roster_canvas.configure(xscrollcommand=add_roster_xscrollbar.set)
-
-        add_roster_canvas.pack(side=tk.LEFT, anchor=tk.N, fill=tk.BOTH, expand=True)
-
-        add_roster_inside_frame=tk.Frame(add_roster_canvas)
-        add_roster_canvas_frame=add_roster_canvas.create_window((0,0), window=add_roster_inside_frame, anchor='nw')
-        add_roster_inside_frame.bind('<Configure>', lambda event:on_configure(event,add_roster_canvas))
-        add_roster_inside_frame.bind("<Enter>", lambda event:_on_mousewheel(event,add_roster_canvas))
-        add_roster_inside_frame.bind("<Leave>", lambda event:_off_mousewheel(event, add_roster_canvas))
+        self.destroy_me=tk.Frame(roster_frame)
+        self.destroy_me.pack(side=tk.TOP, fill=tk.BOTH, anchor=tk.N, expand=True)
+        placeholder_canvas=tk.Canvas(self.destroy_me)
+        placeholder_canvas.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
         
         add_roster_browse=tk.Button(add_roster_frame, text="Browse", command=lambda:openfile(), takefocus=False)
         add_roster_browse.pack(fill=tk.X)
@@ -755,11 +840,11 @@ class MainFrame(tk.Frame):
                             success=tk.Label(account, text="completed", foreground='green')
                             success.pack(side=tk.LEFT)
                         time.sleep(1)
-                remove_all_close=tk.Button(remove_all_nuke, text="Okay", command=remove_all_nuke.destroy())
-                remove_all_close.pack()
+                remove_all_close=tk.Button(remove_all_nuke, text="Okay", command=lambda:remove_all_nuke.destroy())
+                remove_all_close.pack(side=tk.BOTTOM)
                 remove_all_entry.delete('1.0',tk.END)
                 reload()
-                
+            reload()    
             remove_all_warning=tk.Toplevel()
             remove_all_warning.attributes('-topmost',1)
             remove_all_warning.wm_title("Warning!")
@@ -780,7 +865,7 @@ class MainFrame(tk.Frame):
                                              command=lambda:remove_all_warning.destroy())
             remove_all_quit_button.pack(side=tk.LEFT)
             remove_all_confirm_button=tk.Button(remove_all_warning, text="Proceed",
-                                                command=lambda:remove_all_warning.destroy())
+                                                command=lambda:confirm())
             remove_all_confirm_button.pack(side=tk.LEFT)
             
         remove_errors=[]
@@ -875,3 +960,5 @@ class MainFrame(tk.Frame):
 if __name__ == "__main__":
     root=tk.Tk()
     MainApplication(root).pack(side="top", fill=tk.BOTH)
+    root.mainloop()
+
