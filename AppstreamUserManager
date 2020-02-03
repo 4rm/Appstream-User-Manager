@@ -262,19 +262,34 @@ class MainFrame(tk.Frame):
                     p.create_text(295,0,text=u['UserName'],anchor=tk.NW)
                     p.bind("<1>", lambda event,u=u:click(event,u))
                   
-        def stack_apply(s_users):
+        def stack_apply(mode):
             def yeah():
                 for user in parent.selected_users:
                     for stack in parent.stacks:
-                        if stack['var'].get()==1 and stack['Name'] not in user['Stacks']:
+                        if mode=='set':
+                            if stack['var'].get()==1 and stack['Name'] not in user['Stacks']:
+                                parent.client.batch_associate_user_stack(UserStackAssociations=[{
+                                    'StackName':stack['Name'],
+                                    'UserName':user['UserName'],
+                                    'AuthenticationType':"USERPOOL",
+                                    'SendEmailNotification':bool(email.get())
+                                    }])
+                            if stack['var'].get()==0 and stack['Name'] in user['Stacks']:
+                                parent.client.batch_disassociate_user_stack(UserStackAssociations=[{
+                                    'StackName':stack['Name'],
+                                    'UserName':user['UserName'],
+                                    'AuthenticationType':"USERPOOL",
+                                    'SendEmailNotification':bool(email.get())
+                                    }])
+                        elif mode=='add':
                             parent.client.batch_associate_user_stack(UserStackAssociations=[{
                                 'StackName':stack['Name'],
                                 'UserName':user['UserName'],
                                 'AuthenticationType':"USERPOOL",
                                 'SendEmailNotification':bool(email.get())
                                 }])
-                        if stack['var'].get()==0 and stack['Name'] in user['Stacks']:
-                            parent.client.batch_disassociate_user_stack(UserStackAssociations=[{
+                        elif mode=='remove':
+                                parent.client.batch_disassociate_user_stack(UserStackAssociations=[{
                                 'StackName':stack['Name'],
                                 'UserName':user['UserName'],
                                 'AuthenticationType':"USERPOOL",
@@ -308,19 +323,32 @@ class MainFrame(tk.Frame):
             
             stack_frame=tk.Frame(info_frame)
             stack_frame.pack(side=tk.RIGHT,anchor=tk.N)
-            stack_label=tk.Label(stack_frame, text="Stacks", font=(None, 9, 'bold'))
-            stack_label.pack()
+            stack_label_header=tk.Label(stack_frame, text="Stacks", font=(None, 9, 'bold'))
+            stack_label_header.pack()
             for stack in parent.stacks:
                 ind_stack_frame=tk.Frame(stack_frame)
                 ind_stack_frame.pack(anchor=tk.W)
-                stack_label=tk.Label(ind_stack_frame, text=stack['Name'])
-                stack_label.pack(side=tk.RIGHT)
-                if stack['var'].get()==1:
-                    check=tk.Label(ind_stack_frame, text=u'\u2713', foreground="green")
-                    check.pack(side=tk.LEFT)
-                elif stack['var'].get()==0:
-                    cross=tk.Label(ind_stack_frame,  text=u'\u2717', foreground='red')
-                    cross.pack(side=tk.LEFT)
+                if mode=='set':
+                    stack_label=tk.Label(ind_stack_frame, text=stack['Name'])
+                    stack_label.pack(side=tk.RIGHT)
+                    if stack['var'].get()==1:
+                        check=tk.Label(ind_stack_frame, text=u'\u2713', foreground="green")
+                        check.pack(side=tk.LEFT)
+                    elif stack['var'].get()==0:
+                        cross=tk.Label(ind_stack_frame,  text=u'\u2717', foreground='red')
+                        cross.pack(side=tk.LEFT)
+                elif mode=='add':
+                    if stack['var'].get()==1 and stack['Name'] not in user['Stacks']:
+                        stack_label=tk.Label(ind_stack_frame, text=stack['Name'])
+                        stack_label.pack(side=tk.RIGHT)
+                        check=tk.Label(ind_stack_frame, text=u'\u2713', foreground="green")
+                        check.pack(side=tk.LEFT)
+                elif mode=='remove':
+                    if stack['var'].get()==1 and stack['Name'] in user['Stacks']:
+                        stack_label=tk.Label(ind_stack_frame, text=stack['Name'])
+                        stack_label.pack(side=tk.RIGHT)
+                        cross=tk.Label(ind_stack_frame,  text=u'\u2717', foreground='red')
+                        cross.pack(side=tk.LEFT)
             confirm.update()
             button_frame=tk.Frame(confirm)
             button_frame.pack(side=tk.BOTTOM,pady=(10,5))
@@ -331,129 +359,11 @@ class MainFrame(tk.Frame):
             confirm_button.pack(side=tk.RIGHT)
             cancel_button=tk.Button(button_frame, text='Cancel', command=lambda:no(), width=10)
             cancel_button.pack(side=tk.LEFT)
+            
         def reload():
             parent.user_list=[]
             parent.GetUserList()
             search('',parent.user_list)
-        def StackAdd():
-            def yeah():
-                for user in parent.selected_users:
-                    for stack in parent.stacks:
-                        if stack['var'].get()==1 and stack['Name'] not in user['Stacks']:
-                            parent.client.batch_associate_user_stack(UserStackAssociations=[{
-                                'StackName':stack['Name'],
-                                'UserName':user['UserName'],
-                                'AuthenticationType':"USERPOOL",
-                                'SendEmailNotification':bool(email.get())
-                                }])
-                search('',parent.user_list)
-                for stack in parent.stacks:
-                    stack['var'].set(0)
-                confirm.destroy()
-            def no():
-                confirm.destroy()
-            confirm=tk.Toplevel()
-            confirm.attributes('-topmost', 1)
-            confirm.wm_title("Confirm Changes")
-            confirm.lift()
-            yes=tk.Label(confirm, text="Would you like to make the following changes?")
-            yes.pack(side=tk.TOP, anchor=tk.W, padx=5, pady=5)
-
-            info_frame=tk.Frame(confirm)
-            info_frame.pack(anchor=tk.W, padx=5)
-            user_frame=tk.Frame(info_frame)
-            user_frame.pack(side=tk.LEFT, anchor=tk.N)
-            user_label=tk.Label(user_frame, text="Users", font=(None,  9, 'bold'))
-            user_label.pack()
-            for user in parent.selected_users:
-                u=tk.Label(user_frame, text=user['FirstName']+' '+user['LastName'] +' ('+user['UserName']+')')
-                u.pack(anchor=tk.W)
-                
-            border_frame=tk.Frame(info_frame, highlightthickness=3, highlightbackground="gray75")
-            border_frame.pack(fill=tk.Y,padx=5,expand=True,anchor=tk.W, side=tk.LEFT)
-            
-            stack_frame=tk.Frame(info_frame)
-            stack_frame.pack(side=tk.RIGHT,anchor=tk.N)
-            stack_label=tk.Label(stack_frame, text="Stacks", font=(None, 9, 'bold'))
-            stack_label.pack()
-            for stack in parent.stacks:
-                ind_stack_frame=tk.Frame(stack_frame)
-                ind_stack_frame.pack(anchor=tk.W)
-                if stack['var'].get()==1 and stack['Name'] not in user['Stacks']:
-                    stack_label=tk.Label(ind_stack_frame, text=stack['Name'])
-                    stack_label.pack(side=tk.RIGHT)
-                    check=tk.Label(ind_stack_frame, text=u'\u2713', foreground="green")
-                    check.pack(side=tk.LEFT)
-            confirm.update()
-            button_frame=tk.Frame(confirm)
-            button_frame.pack(side=tk.BOTTOM,pady=(10,5))
-            email=tk.IntVar()
-            send_email=tk.Checkbutton(button_frame, text="Send email notification?",var=email)
-            send_email.pack(side=tk.TOP)
-            confirm_button=tk.Button(button_frame, text='Apply', command=lambda:yeah(), width=10)
-            confirm_button.pack(side=tk.RIGHT)
-            cancel_button=tk.Button(button_frame, text='Cancel', command=lambda:no(), width=10)
-            cancel_button.pack(side=tk.LEFT)
-        def StackRemove():
-            def yeah():
-                for user in parent.selected_users:
-                    for stack in parent.stacks:
-                        if stack['var'].get()==1 and stack['Name'] in user['Stacks']:
-                            parent.client.batch_disassociate_user_stack(UserStackAssociations=[{
-                                'StackName':stack['Name'],
-                                'UserName':user['UserName'],
-                                'AuthenticationType':"USERPOOL",
-                                'SendEmailNotification':bool(email.get())
-                                }])
-                search('',parent.user_list)
-                for stack in parent.stacks:
-                    stack['var'].set(0)
-                confirm.destroy()
-            def no():
-                confirm.destroy()
-            confirm=tk.Toplevel()
-            confirm.attributes('-topmost', 1)
-            confirm.wm_title("Confirm Changes")
-            confirm.lift()
-            yes=tk.Label(confirm, text="Would you like to make the following changes?")
-            yes.pack(side=tk.TOP, anchor=tk.W, padx=5, pady=5)
-
-            info_frame=tk.Frame(confirm)
-            info_frame.pack(anchor=tk.W, padx=5)
-            user_frame=tk.Frame(info_frame)
-            user_frame.pack(side=tk.LEFT, anchor=tk.N)
-            user_label=tk.Label(user_frame, text="Users", font=(None,  9, 'bold'))
-            user_label.pack()
-            for user in parent.selected_users:
-                u=tk.Label(user_frame, text=user['FirstName']+' '+user['LastName'] +' ('+user['UserName']+')')
-                u.pack(anchor=tk.W)
-                
-            border_frame=tk.Frame(info_frame, highlightthickness=3, highlightbackground="gray75")
-            border_frame.pack(fill=tk.Y,padx=5,expand=True,anchor=tk.W, side=tk.LEFT)
-            
-            stack_frame=tk.Frame(info_frame)
-            stack_frame.pack(side=tk.RIGHT,anchor=tk.N)
-            stack_label=tk.Label(stack_frame, text="Stacks", font=(None, 9, 'bold'))
-            stack_label.pack()
-            for stack in parent.stacks:
-                ind_stack_frame=tk.Frame(stack_frame)
-                ind_stack_frame.pack(anchor=tk.W)
-                if stack['var'].get()==1 and stack['Name'] in user['Stacks']:
-                    stack_label=tk.Label(ind_stack_frame, text=stack['Name'])
-                    stack_label.pack(side=tk.RIGHT)
-                    cross=tk.Label(ind_stack_frame,  text=u'\u2717', foreground='red')
-                    cross.pack(side=tk.LEFT)
-            confirm.update()
-            button_frame=tk.Frame(confirm)
-            button_frame.pack(side=tk.BOTTOM,pady=(10,5))
-            email=tk.IntVar()
-            send_email=tk.Checkbutton(button_frame, text="Send email notification?",var=email)
-            send_email.pack(side=tk.TOP)
-            confirm_button=tk.Button(button_frame, text='Apply', command=lambda:yeah(), width=10)
-            confirm_button.pack(side=tk.RIGHT)
-            cancel_button=tk.Button(button_frame, text='Cancel', command=lambda:no(), width=10)
-            cancel_button.pack(side=tk.LEFT)
-            
             
         #Initial window creation
 
@@ -500,12 +410,12 @@ class MainFrame(tk.Frame):
 
         stacks_buttons=tk.Frame(stacks_frame)
         stacks_buttons.pack(side=tk.BOTTOM, fill=tk.X, expand=True)
-        stacks_apply=tk.Button(stacks_buttons, text="Set",command=lambda:stack_apply(parent.selected_users))
-        stacks_apply.pack(anchor=tk.SW, side=tk.LEFT, fill=tk.X, expand=True)
-        stacks_add=tk.Button(stacks_buttons, text="Add",command=lambda:StackAdd())
-        stacks_add.pack(anchor=tk.SW, side=tk.LEFT, fill=tk.X, expand=True)
-        stacks_remove=tk.Button(stacks_buttons, text="Remove",command=lambda:StackRemove())
-        stacks_remove.pack(anchor=tk.SW, side=tk.LEFT, fill=tk.X, expand=True)
+        stacks_apply=tk.Button(stacks_buttons, text="Set",command=lambda:stack_apply("set"), width=10)
+        stacks_apply.pack(anchor=tk.SW, side=tk.LEFT)
+        stacks_add=tk.Button(stacks_buttons, text="Add",command=lambda:stack_apply("add"), width=10)
+        stacks_add.pack(anchor=tk.SW, side=tk.LEFT)
+        stacks_remove=tk.Button(stacks_buttons, text="Remove",command=lambda:stack_apply("remove"), width=10)
+        stacks_remove.pack(anchor=tk.SW, side=tk.LEFT)
 
         self.user_info_pane=ttk.Labelframe(control_pane, text="User info")
         self.user_info_pane.pack(side=tk.TOP, fill=tk.Y, anchor=tk.N, expand=True)
@@ -605,7 +515,7 @@ class MainFrame(tk.Frame):
                 error.attributes('-topmost', 1)
                 error.wm_title("Error")
                 error.lift()
-                error_label=tk.Label(error, text="No option selected")
+                error_label=tk.Label(error, text="No option selected", font=(None, 14))
                 error_label.pack(padx=10)
                 okay_button=tk.Button(error, text="Okay", command=lambda:error.destroy())
                 okay_button.pack(anchor=tk.CENTER, pady=5)
@@ -678,15 +588,14 @@ class MainFrame(tk.Frame):
                 self.r.bind("<Enter>", lambda event:_on_mousewheel(event,temp_canvas))
                 self.r.bind("<Leave>", lambda event:_off_mousewheel(event,temp_canvas))
                 for item in parent.roster:
-                    roster_student_canvas=tk.Canvas(myframe, height=10, width=450)
+                    roster_student_canvas=tk.Canvas(myframe, height=11, width=450)
                     roster_student_canvas.pack(fill=tk.X,expand=True)
                     roster_student_canvas.create_text(3,0,text=item['First Name'],anchor=tk.NW, font=(None, 8))
                     roster_student_canvas.create_text(140,0,text=item["Last Name"],anchor=tk.NW, font=(None, 8))
                     roster_student_canvas.create_text(260,0,text=item["User Name"],anchor=tk.NW, font=(None, 8))
                 
             except Exception as e:
-                print(str(e)+"none selected")
-                        
+                print(str(e))      
         
         add_pane=tk.Frame(f2)
         add_pane.pack(fill=tk.BOTH, expand=True)
@@ -706,15 +615,16 @@ class MainFrame(tk.Frame):
                                         variable=add_roster,
                                         command=lambda:add_individual.set(0),
                                         takefocus=False)
-        add_roster_label.pack(pady=(0,10))
+        add_roster_label.pack(pady=(0,5))
         roster_frame=tk.Frame(add_roster_frame)
         roster_frame.pack(fill=tk.BOTH, expand=True)
 
-        roster_header_canvas=tk.Canvas(roster_frame, height=10)
-        roster_header_canvas.pack(fill=tk.X, expand=True)
+        roster_header_canvas=tk.Canvas(roster_frame, height=16)
+        roster_header_canvas.pack(fill=tk.X, expand=True, pady=(0,1))
         roster_header_canvas.create_text(3,0,text="First Name",anchor=tk.NW, font=(None, 9, 'bold'))
         roster_header_canvas.create_text(140,0,text="Last Name",anchor=tk.NW, font=(None, 9, 'bold'))
         roster_header_canvas.create_text(260,0,text="User Name",anchor=tk.NW, font=(None, 9, 'bold'))
+        roster_header_canvas.create_line(1,16,420,16)
 
         self.destroy_me=tk.Frame(roster_frame)
         self.destroy_me.pack(side=tk.TOP, fill=tk.BOTH, anchor=tk.N, expand=True)
@@ -756,8 +666,8 @@ class MainFrame(tk.Frame):
         add_individual_UserName_entry=tk.Entry(add_entry_frame, width=30)
         add_individual_UserName_entry.pack()
 
-        new_user_stack_frame=tk.Frame(add_pane, relief=tk.GROOVE, bd=2)
-        new_user_stack_frame.pack(side=tk.TOP, fill=tk.BOTH, anchor=tk.CENTER, expand=True)
+        new_user_stack_frame=tk.Frame(add_pane, relief=tk.GROOVE, bd=0)
+        new_user_stack_frame.pack(side=tk.TOP, anchor=tk.CENTER)
         new_user_stack_label=tk.Label(new_user_stack_frame,
                                       text="Associate new users with the following stacks:",
                                       font=(None,14,'bold'))
@@ -768,16 +678,15 @@ class MainFrame(tk.Frame):
 
         #Remove tab
         def BulkRemove():
-            for user in remove_bulk_entry.get('1.0',tk.END).split('\n')[:-1]:
-                if len(user) is not 0:
-                    try:
-                        print(user)
-                        parent.client.delete_user(UserName=user,AuthenticationType="USERPOOL")
-                    except Exception as e:
-                        remove_errors.append("\""+user+"\"" + ' - ' + str(e).replace("\n"," "))
-                    else:
-                        remove_success.append(user)
-            if len(user) is not 0:
+            if len(remove_bulk_entry.get('1.0',tk.END))>1:
+                for user in remove_bulk_entry.get('1.0',tk.END).split('\n')[:-1]:
+                    if len(user) is not 0:
+                        try:
+                            parent.client.delete_user(UserName=user,AuthenticationType="USERPOOL")
+                        except Exception as e:
+                            remove_errors.append("\""+user+"\"" + ' - ' + str(e).replace("\n"," "))
+                        else:
+                            remove_success.append(user)
                 remove_success_popup=tk.Toplevel()
                 remove_success_popup.attributes('-topmost', 1)
                 remove_success_popup.wm_title("Results")
@@ -882,13 +791,15 @@ class MainFrame(tk.Frame):
                                      font=(None,9,'italic'), justify=tk.LEFT)
         remove_bulk_comment.pack(anchor=tk.W,pady=(0,5))
         remove_bulk_content=tk.Frame(remove_bulk_frame)
-        remove_bulk_content.pack(side=tk.LEFT, anchor=tk.N)
+        remove_bulk_content.pack(side=tk.LEFT, anchor=tk.N, fill=tk.BOTH, expand=True)
         remove_bulk_entry=ScrolledText(remove_bulk_content, width=60, height=10)
-        remove_bulk_entry.pack(side=tk.LEFT)
+        remove_bulk_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         remove_bulk_button=tk.Button(remove_bulk_content, text="Remove",
                                      command=lambda:BulkRemove(),
-                                     width=20,height=3)
-        remove_bulk_button.pack(side=tk.LEFT)
+                                     width=20,
+                                     height=3,
+                                     font=(None,14))
+        remove_bulk_button.pack(side=tk.LEFT, fill=tk.Y)
 
         remove_all_frame=tk.Frame(remove_pane, relief=tk.GROOVE, bd=2)
         remove_all_frame.pack(fill=tk.BOTH, expand=True)
@@ -899,11 +810,21 @@ class MainFrame(tk.Frame):
                                     font=(None,9,'italic'), justify=tk.LEFT)
         remove_all_comment.pack(anchor=tk.W, pady=(0,5))
         remove_all_content=tk.Frame(remove_all_frame)
-        remove_all_content.pack(side=tk.LEFT, anchor=tk.N)
+        remove_all_content.pack(side=tk.LEFT, anchor=tk.N, fill=tk.BOTH, expand=True)
         remove_all_entry=ScrolledText(remove_all_content, width=60, height=10)
-        remove_all_entry.pack(side=tk.LEFT)
-        remove_all_button=tk.Button(remove_all_content, text="NUKE",width=20,height=3, command=lambda:RemoveAll())
-        remove_all_button.pack(side=tk.LEFT)
+        remove_all_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        remove_all_button=tk.Button(remove_all_content,
+                                    text="NUKE",
+                                    font=(None,14),
+                                    width=20,
+                                    height=3,
+                                    command=lambda:RemoveAll(),
+                                    background="#ffc7c7",
+                                    activebackground="#ffa2a2",
+                                    foreground="#b00000",
+                                    activeforeground="#6e0000"
+                                    )
+        remove_all_button.pack(side=tk.LEFT, fill=tk.Y)
         
         #wait for login/credentials window to close
         root.wait_window(parent.popup)
@@ -940,8 +861,8 @@ class MainFrame(tk.Frame):
                     )['Fleets'][0]['State']=='STOPPED':
                     #Set stack name to red if the associated fleet is stopped
                     #Can stacks have multiple associated fleets?
-                    stack.configure(foreground="red")
-                    stack2.configure(foreground="red")
+                    stack.configure(foreground="red",activeforeground="red")
+                    stack2.configure(foreground="red",activeforeground="red")
                 stack.pack(anchor=tk.NW)
                 stack2.pack(side=tk.LEFT)
             for i in parent.user_list:
