@@ -1,3 +1,4 @@
+import os
 import time
 import boto3
 import pandas as pd
@@ -12,8 +13,12 @@ class MainApplication(tk.Frame):
         self.parent = parent
 
         root.title("Appstream User Manager")
+        if "nt" == os.name:
+            root.iconbitmap(self.resource_path('images/icon.ico'))
 
         self.popup=tk.Toplevel()
+        if "nt" == os.name:
+            self.popup.iconbitmap(self.resource_path('images/icon.ico'))
         
         self.credentials_frame=CredentialsFrame(self)
         self.credentials_frame.pack()
@@ -65,6 +70,15 @@ class MainApplication(tk.Frame):
                 self.stacks.append({"Name":stack['Name'],
                                     "var":var,
                                     "var2":var2})
+
+    def resource_path(self, relative_path):
+        #Get absolute path to resource, works for dev and for
+        #PyInstaller - Found on stackoverflow
+        try:
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath('.')
+        return os.path.join(base_path, relative_path)
         
 class CredentialsFrame(tk.Frame):
     def __init__(self, parent):
@@ -309,6 +323,8 @@ class MainFrame(tk.Frame):
             confirm=tk.Toplevel()
             confirm.attributes('-topmost', 1)
             confirm.wm_title("Confirm Changes")
+            if "nt" == os.name:
+                confirm.iconbitmap(parent.resource_path('images/icon.ico'))
             confirm.lift()
             yes=tk.Label(confirm, text="Would you like to make the following changes?")
             yes.pack(side=tk.TOP, anchor=tk.W, padx=5, pady=5)
@@ -463,6 +479,8 @@ class MainFrame(tk.Frame):
                     error=tk.Toplevel()
                     error.attributes('-topmost', 1)
                     error.wm_title("Error")
+                    if "nt" == os.name:
+                        error.iconbitmap(parent.resource_path('images/icon.ico'))
                     error.lift()
                     error_label=tk.Label(error, text=e)
                     error_label.pack()
@@ -491,6 +509,8 @@ class MainFrame(tk.Frame):
                     add_roster_success_popup=tk.Toplevel()
                     add_roster_success_popup.attributes('-topmost', 1)
                     add_roster_success_popup.wm_title("Results")
+                    if "nt" == os.name:
+                        add_roster_success_popup.iconbitmap(parent.resource_path('images/icon.ico'))
                     add_roster_success_popup.lift()
 
                     add_roster_progress_frame=tk.Frame(add_roster_success_popup)
@@ -559,6 +579,8 @@ class MainFrame(tk.Frame):
                 error=tk.Toplevel()
                 error.attributes('-topmost', 1)
                 error.wm_title("Error")
+                if "nt" == os.name:
+                    error.iconbitmap(parent.resource_path('images/icon.ico'))
                 error.lift()
                 error_label=tk.Label(error, text="No option selected", font=(None, 14))
                 error_label.pack(padx=10)
@@ -731,6 +753,8 @@ class MainFrame(tk.Frame):
                 remove_success_popup=tk.Toplevel()
                 remove_success_popup.attributes('-topmost', 1)
                 remove_success_popup.wm_title("Results")
+                if "nt" == os.name:
+                    remove_success_popup.iconbitmap(parent.resource_path('images/icon.ico'))
                 remove_success_popup.lift()
 
                 progress_frame=tk.Frame(remove_success_popup)
@@ -783,6 +807,7 @@ class MainFrame(tk.Frame):
                 results.pack()
                 okay_button=tk.Button(results_frame, text="Okay", command=lambda:remove_success_popup.destroy(),width=10)
                 okay_button.pack(pady=5)
+                results_frame.update()
                 remove_bulk_entry.delete('1.0',tk.END)
                 reload()
         def RemoveAll():
@@ -791,6 +816,8 @@ class MainFrame(tk.Frame):
                 remove_all_nuke=tk.Toplevel()
                 remove_all_nuke.attributes('-topmost',1)
                 remove_all_nuke.wm_title('Removing...')
+                if "nt" == os.name:
+                    remove_all_nuke.iconbitmap(parent.resource_path('images/icon.ico'))
                 remove_all_nuke.lift()
                 remove_all_header=tk.Label(remove_all_nuke, text="Removing...")
                 remove_all_header.pack()
@@ -841,6 +868,8 @@ class MainFrame(tk.Frame):
             remove_all_warning=tk.Toplevel()
             remove_all_warning.attributes('-topmost',1)
             remove_all_warning.wm_title("Warning!")
+            if "nt" == os.name:
+                remove_all_warning.iconbitmap(parent.resource_path('images/icon.ico'))
             remove_all_warning.lift()
             remove_all_warning_header=tk.Label(remove_all_warning, text="Warning", font=(None, 18, 'bold'),
                                                foreground='red')
