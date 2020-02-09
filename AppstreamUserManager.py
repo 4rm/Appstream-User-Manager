@@ -40,7 +40,7 @@ class MainApplication(tk.Frame):
                 user={"FirstName":  user_info['FirstName'],
                       "LastName":  user_info['LastName'],
                       "UserName": user_info['UserName'],
-                      "Status": user_info['Enabled'],
+                      "Status": user_info['Status'],
                       "Selected": 0,
                       "Widget": None,
                       "Stacks":[]}
@@ -155,10 +155,6 @@ class MainFrame(tk.Frame):
         def mousewheel(event,canvase):
             canvase.yview_scroll(int(-1*(event.delta/120)), "units")
 
-##        def framewidth(event):
-##            canvas_width=event.width
-##            canvas.itemconfig(canvas_frame, width=event.width)
-
         def click(event,i):
             def resend(uname):
                 try:
@@ -195,9 +191,17 @@ class MainFrame(tk.Frame):
 
                 button_frame=tk.Frame(name)
                 button_frame.pack(anchor=tk.W, pady=2)
-                resend_button=tk.Button(button_frame, text="Resend welcome email", relief=tk.GROOVE, font=(None, 8),
-                                        command=lambda username=i['UserName']:resend(username))
+                resend_button=tk.Button(button_frame, text="Resend welcome email",
+                                        relief=tk.GROOVE,
+                                        font=(None, 8),
+                                        command=lambda username=i['UserName']:resend(username),
+                                        cursor="hand2")
                 resend_button.pack(side=tk.LEFT)
+
+                if (i['Status'] == 'CONFIRMED'):
+                    resend_button.configure(state=tk.DISABLED,
+                                            cursor='')
+                    
                 border=tk.Frame(name, highlightthickness=1, highlightbackground="black", width=220)
                 border.pack(fill=tk.X, expand=True, pady=5, side=tk.BOTTOM)
                 
@@ -214,6 +218,7 @@ class MainFrame(tk.Frame):
                 self.no_user.pack_forget()
             elif len(parent.selected_users)==0:
                 self.no_user.pack()
+            self.user_info_canvas.yview_moveto(1)
             
         self.user_canvas_name=None
         self.user_scrollbar_name=None
@@ -483,15 +488,52 @@ class MainFrame(tk.Frame):
                 search('',parent.user_list)
             elif add_roster.get()==1:
                 try:
-                    for child in self.r.winfo_children():
-                        child.destroy()
-                    self.r.destroy()
+                    add_roster_success_popup=tk.Toplevel()
+                    add_roster_success_popup.attributes('-topmost', 1)
+                    add_roster_success_popup.wm_title("Results")
+                    add_roster_success_popup.lift()
+
+                    add_roster_progress_frame=tk.Frame(add_roster_success_popup)
+                    add_roster_progress_frame.pack()
+                    
+                    add_roster_canvas=tk.Canvas(add_roster_progress_frame)
+
+                    add_roster_scrollbar=tk.Scrollbar(add_roster_progress_frame, command=add_roster_canvas.yview)
+                    add_roster_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+                    add_rosterx_scrollbar=tk.Scrollbar(add_roster_progress_frame, command=add_roster_canvas.xview, orient=tk.HORIZONTAL)
+                    add_rosterx_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+                    add_roster_canvas.configure(yscrollcommand=add_roster_scrollbar.set)
+                    add_roster_canvas.configure(xscrollcommand=add_rosterx_scrollbar.set)
+
+                    add_roster_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+                    add_roster_frame=tk.Frame(add_roster_canvas)
+                    add_roster_canvas_frame=add_roster_canvas.create_window((0,0), window=add_roster_frame, anchor='nw')
+                    add_roster_frame.bind('<Configure>', lambda event:on_configure(event,add_roster_canvas))
+                    add_roster_canvas.bind("<Enter>", lambda event:_on_mousewheel(event,add_roster_canvas))
+                    add_roster_canvas.bind("<Leave>", lambda event:_off_mousewheel(event,add_roster_canvas))
                     for student in parent.roster:
-                        parent.client.create_user(UserName=student['User Name'],
-                                                  FirstName=student['First Name'],
-                                                  LastName=student['Last Name'],
-                                                  AuthenticationType="USERPOOL"
-                                                  )
+                        account=tk.Frame(add_roster_frame)
+                        account.pack(anchor=tk.W)
+                        added=tk.Label(account, text=student['User Name']+' - ')
+                        added.pack(side=tk.LEFT)
+                        try:
+                            parent.client.create_user(UserName=student['User Name'],
+                                                      FirstName=student['First Name'],
+                                                      LastName=student['Last Name'],
+                                                      AuthenticationType="USERPOOL"
+                                                      )
+                        except Exception as e:
+                            print(e)
+                            error=tk.Label(account, text=str(e), foreground='red')
+                            error.pack(side=tk.LEFT)
+                        else:
+                            added_roster_account=tk.Label(account, text="Added successfully",foreground="green")
+                            added_roster_account.pack(anchor=tk.W)
+                        add_roster_canvas.update()
+                        add_roster_canvas.yview_moveto(1)
                         time.sleep(1)
                     for stack in parent.stacks:
                         if stack['var2'].get()==1:
@@ -504,12 +546,15 @@ class MainFrame(tk.Frame):
                                     }])
                             stack['var2'].set(0)
                     parent.roster.clear()
+                    for child in self.r.winfo_children():
+                        child.destroy()
+                    self.r.destroy()
                     self.destroy_me=tk.Frame(roster_frame)
                     self.destroy_me.pack(side=tk.TOP, fill=tk.BOTH, anchor=tk.N, expand=True)
                     placeholder_canvas=tk.Canvas(self.destroy_me)
                     placeholder_canvas.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
-                except:
-                    None
+                except Exception as e:
+                    print(e)
             elif add_roster.get()==0 and add_individual.get()==0:
                 error=tk.Toplevel()
                 error.attributes('-topmost', 1)
@@ -531,6 +576,7 @@ class MainFrame(tk.Frame):
                         for child in self.r.winfo_children():
                             child.destroy()
                         self.r.destroy()
+                        parent.roster.clear()
                     except Exception as e:
                         print(e)
                 except Exception as e:
@@ -666,7 +712,10 @@ class MainFrame(tk.Frame):
         add_individual_UserName_entry=tk.Entry(add_entry_frame, width=30)
         add_individual_UserName_entry.pack()
 
-        new_user_stack_frame=tk.Frame(add_pane, relief=tk.GROOVE, bd=0)
+        new_user_stack_frame_border=tk.Frame(add_pane, relief=tk.GROOVE, bd=2)
+        new_user_stack_frame_border.pack(fill=tk.BOTH, expand=True)
+
+        new_user_stack_frame=tk.Frame(new_user_stack_frame_border)
         new_user_stack_frame.pack(side=tk.TOP, anchor=tk.CENTER)
         new_user_stack_label=tk.Label(new_user_stack_frame,
                                       text="Associate new users with the following stacks:",
@@ -679,33 +728,61 @@ class MainFrame(tk.Frame):
         #Remove tab
         def BulkRemove():
             if len(remove_bulk_entry.get('1.0',tk.END))>1:
-                for user in remove_bulk_entry.get('1.0',tk.END).split('\n')[:-1]:
-                    if len(user) is not 0:
-                        try:
-                            parent.client.delete_user(UserName=user,AuthenticationType="USERPOOL")
-                        except Exception as e:
-                            remove_errors.append("\""+user+"\"" + ' - ' + str(e).replace("\n"," "))
-                        else:
-                            remove_success.append(user)
                 remove_success_popup=tk.Toplevel()
                 remove_success_popup.attributes('-topmost', 1)
                 remove_success_popup.wm_title("Results")
                 remove_success_popup.lift()
-                successes=tk.LabelFrame(remove_success_popup, text=str(len(remove_success))+" account(s) removed successfully", foreground="blue")
-                successes.pack(anchor=tk.NW, fill=tk.BOTH, expand=True)
-                for account in remove_success:
-                    removed_account=tk.Label(successes, text=account)
-                    removed_account.pack(anchor=tk.W)
-                if len(remove_errors)>0:
-                    failures=tk.LabelFrame(remove_success_popup, text=str(len(remove_errors))+" error(s)", foreground="red")
-                    failures.pack(anchor=tk.W, fill=tk.BOTH, expand=True)
-                    for account in remove_errors:
-                        failed_account=tk.Label(failures, text=account)
-                        failed_account.pack(anchor=tk.W)
-                okay_button=tk.Button(remove_success_popup, text="Okay", command=lambda:remove_success_popup.destroy(),width=10)
+
+                progress_frame=tk.Frame(remove_success_popup)
+                progress_frame.pack()
+                
+                bulk_canvas=tk.Canvas(progress_frame)
+
+                bulk_scrollbar=tk.Scrollbar(progress_frame, command=bulk_canvas.yview)
+                bulk_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+                bulkx_scrollbar=tk.Scrollbar(progress_frame, command=bulk_canvas.xview, orient=tk.HORIZONTAL)
+                bulkx_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+                bulk_canvas.configure(yscrollcommand=bulk_scrollbar.set)
+                bulk_canvas.configure(xscrollcommand=bulkx_scrollbar.set)
+
+                bulk_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+                bulk_frame=tk.Frame(bulk_canvas)
+                bulk_canvas_frame=bulk_canvas.create_window((0,0), window=bulk_frame, anchor='nw')
+                bulk_frame.bind('<Configure>', lambda event:on_configure(event,bulk_canvas))
+                bulk_canvas.bind("<Enter>", lambda event:_on_mousewheel(event,bulk_canvas))
+                bulk_canvas.bind("<Leave>", lambda event:_off_mousewheel(event,bulk_canvas))
+
+                errors=0
+                successes=0
+                
+                for user in remove_bulk_entry.get('1.0',tk.END).split('\n')[:-1]:
+                    if len(user) != 0:
+                        account=tk.Frame(bulk_frame)
+                        account.pack(anchor=tk.W)
+                        removed=tk.Label(account, text=user+' - ')
+                        removed.pack(side=tk.LEFT)
+                        try:
+                            parent.client.delete_user(UserName=user,AuthenticationType="USERPOOL")
+                        except Exception as e:
+                            error=tk.Label(account, text=str(e), foreground='red')
+                            error.pack(side=tk.LEFT)
+                            errors+=1
+                        else:
+                            removed_account=tk.Label(account, text="Removed successfully", foreground="green")
+                            removed_account.pack(anchor=tk.W)
+                            successes+=1
+                        bulk_canvas.update()
+                        bulk_canvas.yview_moveto(1)
+                        time.sleep(1)
+                results_frame=tk.Frame(remove_success_popup)
+                results_frame.pack(side=tk.BOTTOM)
+                results=tk.Label(results_frame, text=str(successes)+' account(s) removed successfully.\n'+str(errors)+' error(s).')
+                results.pack()
+                okay_button=tk.Button(results_frame, text="Okay", command=lambda:remove_success_popup.destroy(),width=10)
                 okay_button.pack(pady=5)
-                remove_errors.clear()
-                remove_success.clear()
                 remove_bulk_entry.delete('1.0',tk.END)
                 reload()
         def RemoveAll():
@@ -732,23 +809,30 @@ class MainFrame(tk.Frame):
                 removal_canvas.bind("<Enter>", lambda event:_on_mousewheel(event,removal_canvas))
                 removal_canvas.bind("<Leave>", lambda event:_off_mousewheel(event,removal_canvas))
 
+                errors=0
+                successes=0
+
                 for user in parent.user_list:
                     if user['UserName'] not in remove_all_entry.get('1.0',tk.END).split('\n')[:-1]:
                         account=tk.Frame(removal_frame)
                         account.pack(anchor=tk.W)
                         removed=tk.Label(account, text=user['UserName']+' - ')
                         removed.pack(side=tk.LEFT)
-                        removal_canvas.update()
-                        removal_canvas.yview_moveto(1)
                         try:
                             parent.client.delete_user(UserName=user['UserName'],AuthenticationType="USERPOOL")
                         except Exception as e:
                             error=tk.Label(account, text=str(e), foreground='red')
                             error.pack(side=tk.LEFT)
+                            errors+=1
                         else:
                             success=tk.Label(account, text="completed", foreground='green')
                             success.pack(side=tk.LEFT)
+                            successes+=1
+                        removal_canvas.update()
+                        removal_canvas.yview_moveto(1)
                         time.sleep(1)
+                status_update=tk.Label(remove_all_nuke, text=str(successes)+" removed successfully. "+str(errors)+" error(s)")
+                status_update.pack(side=tk.BOTTOM)
                 remove_all_close=tk.Button(remove_all_nuke, text="Okay", command=lambda:remove_all_nuke.destroy())
                 remove_all_close.pack(side=tk.BOTTOM)
                 remove_all_entry.delete('1.0',tk.END)
