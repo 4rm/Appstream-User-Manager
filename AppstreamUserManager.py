@@ -1,6 +1,9 @@
 import os
+import sys
 import time
 import boto3
+import urllib3
+import webbrowser
 import pandas as pd
 import tkinter as tk
 from tkinter import ttk
@@ -11,6 +14,38 @@ class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+
+        local_version=1.5
+
+        http=urllib3.PoolManager()
+        response=http.request('GET','https://raw.githubusercontent.com/4rm/Appstream-User-Manager/master/version.txt')
+
+        web_version=float(response.data.decode('utf-8'))
+
+        def download():
+            webbrowser.open('https://github.com/4rm/Appstream-User-Manager/releases')
+            sys.exit()
+
+        if web_version > local_version:
+            available_update=tk.Toplevel()
+            available_update.wm_title('Updates are available')
+            info_frame=tk.Frame(available_update)
+            info_frame.pack(padx=10, pady=10)
+            message=tk.Label(info_frame, text="An update is available",
+                             font=(None,14))
+            message.pack()
+            button_frame=tk.Frame(info_frame)
+            button_frame.pack()
+            Download_button=tk.Button(button_frame, text="Download and Close",
+                                      command=lambda:download())
+            Download_button.pack(side=tk.LEFT)
+            Later_button=tk.Button(button_frame, text="Maybe later",
+                                   command=lambda:available_update.destroy())
+            Later_button.pack(side=tk.LEFT)
+                                      
+            available_update.attributes('-topmost', 1)
+            available_update.lift()
+            root.wait_window(available_update)
 
         root.title("Appstream User Manager")
         if "nt" == os.name:
