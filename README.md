@@ -1,3 +1,5 @@
+<img src="https://i.imgur.com/HKCwOdn.png" alt="logo" align="left" width=60px>
+
 # Appstream-User-Manager
 GUI alternative to managing Appstream users \#UNDER CONSTRUCTION\#
 
