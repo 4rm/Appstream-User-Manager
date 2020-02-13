@@ -31,14 +31,14 @@ class MainApplication(tk.Frame):
             available_update.wm_title('Updates are available')
             info_frame=tk.Frame(available_update)
             info_frame.pack(padx=10, pady=10)
-            message=tk.Label(info_frame, text="An update is available",
+            message=tk.Label(info_frame, text="New update is available",
                              font=(None,14))
-            message.pack()
+            message.pack(pady=(0,10))
             button_frame=tk.Frame(info_frame)
             button_frame.pack()
-            Download_button=tk.Button(button_frame, text="Download and Close",
+            Download_button=tk.Button(button_frame, text="Download",
                                       command=lambda:download())
-            Download_button.pack(side=tk.LEFT)
+            Download_button.pack(side=tk.LEFT, padx=(0,10))
             Later_button=tk.Button(button_frame, text="Maybe later",
                                    command=lambda:available_update.destroy())
             Later_button.pack(side=tk.LEFT)
