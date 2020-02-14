@@ -92,6 +92,7 @@ class MainApplication(tk.Frame):
                       "LastName":  user_info['LastName'],
                       "UserName": user_info['UserName'],
                       "Status": user_info['Status'],
+                      "Enabled": user_info['Enabled'],
                       "Selected": 0,
                       "Widget": None,
                       "Stacks":[]}
@@ -430,6 +431,72 @@ class MainFrame(tk.Frame):
             parent.user_list=[]
             parent.GetUserList()
             search('',parent.user_list)
+
+        def bulk_resend():
+            bulk_mail_popup=tk.Toplevel()
+            bulk_mail_popup.attributes('-topmost', 1)
+            bulk_mail_popup.wm_title("Sending emails")
+            if "nt" == os.name:
+                bulk_mail_popup.iconbitmap(parent.resource_path('images/icon.ico'))
+            bulk_mail_popup.lift()
+
+            bulk_mail_progress_frame=tk.Frame(bulk_mail_popup)
+            bulk_mail_progress_frame.pack()
+
+            bulk_mail_canvas=tk.Canvas(bulk_mail_progress_frame)
+
+            bulk_mail_scrollbar=tk.Scrollbar(bulk_mail_progress_frame,
+                                             bulk_mail_canvas.yview)
+            bulk_mail_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+            bulk_mail_xscrollbar=tk.Scrollbar(bulk_mail_progress_frame,
+                                              bulk_mail_canvas.xview)
+            bulk_mail_xscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+            bulk_mail_canvas.configure(yscrollcommand=bulk_mail_scrollbar.set)
+            bulk_mail_canvas.configure(xscrollcommand=bulk_mail_xscrollbar.set)
+
+            bulk_mail_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+            bulk_mail_frame=tk.Frame(bulk_mail_canvas)
+            bulk_mail_canvas_frame=bulk_mail_canvas.create_window((0,0), window=bulk_mail_frame, anchor=tk.NW)
+            bulk_mail_frame.bind('<Configure>', lambda event:on_configure(event,bulk_mail_canvas))
+            bulk_mail_canvas.bind('<Enter>', lambda event:_on_mousewheel(event,bulk_canvas))
+            bulk_mail_canvas.bind('<Leave>', lambda event:_off_mousewheel(event,bulk_canvas))
+
+            errors=0
+            successes=0
+            disabled=0
+
+            for user in parent.user_list:
+                if user['Status'] is 'FORCE_CHANGE_PASSWORD':
+                    account=tk.Frame(bulk_mail_frame)
+                    account.pack(anchor=tk.W)
+                    sent=tk.Label(account, text=user['UserName']+' - ')
+                    sent.pack(side=tk.LEFT)
+                    if user['Enabled'] is True:
+                        try:
+                            parent.client.create_user(UserName=user['UserName'],
+                                                      MessageAction="RESEND",
+                                                      AuthenticationType="USERPOOL")
+                        except Exception as e:
+                            error=tk.Label(account, text=str(e), foreground='red')
+                            error.pack(side=tk.LEFT)
+                            errors+=1
+                        else:
+                            success=tk.Label(account, text="Sent successfully",
+                                             foreground="green")
+                            success=.pack(anchor=tk.W)
+                            successes+=1
+                    if user['Enabled'] is False:
+                        disable=tk.Label(account, text=user['UserName']
+                                         +' is disabled',
+                                         foreground='red')
+                        disable.pack(side=tk.LEFT)
+                        disabled=0
+                bulk_mail
+
+            
             
         #Initial window creation
 
@@ -482,6 +549,13 @@ class MainFrame(tk.Frame):
         stacks_add.pack(anchor=tk.SW, side=tk.LEFT)
         stacks_remove=tk.Button(stacks_buttons, text="Remove",command=lambda:stack_apply("remove"), width=10)
         stacks_remove.pack(anchor=tk.SW, side=tk.LEFT)
+
+        bulk_resend=ttk.Labelframe(control_pane, text="Bulk resend")
+        bulk_resend.pack(side=tk.TOP, fill=tk.X, anchor=tk.N)
+        bulk_resend_button=tk.Button(bulk_resend,
+                                     text="Resend welcome to inactive accounts",
+                                     command=lambda:bulk_resend())
+        bulk_resend_button.pack(fill=tk.X)
 
         self.user_info_pane=ttk.Labelframe(control_pane, text="User info")
         self.user_info_pane.pack(side=tk.TOP, fill=tk.Y, anchor=tk.N, expand=True)
