@@ -1,4 +1,4 @@
-<img src="https://i.imgur.com/Lv0d28d.png" alt="Logo" width=450>
+<img src="https://i.imgur.com/Ht86JYX.png" alt="Logo" width=450>
 
 GUI alternative to managing Appstream users \#UNDER CONSTRUCTION\#
 
@@ -52,7 +52,7 @@ Once your Access key has been made, you will be able to view your Secret Access 
 
 ### <a name="Usage">Usage</a>
 
-There are three main windows in the Appstream User Manager.
+There are three main windows in the Appstream User Manager: Manage, add, remove
 
 ## <a name="Known">Known Issues</a>
 * Rate limiting happens <i>a lot</i>. Had to add 1 second delays all over the place.
