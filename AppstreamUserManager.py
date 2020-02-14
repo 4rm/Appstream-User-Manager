@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import boto3
-import urllib3
+import requests
 import webbrowser
 import pandas as pd
 import tkinter as tk
@@ -15,25 +15,36 @@ class MainApplication(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
-        local_version=1.5
+        local_version=2.0
 
-        http=urllib3.PoolManager()
-        response=http.request('GET','https://raw.githubusercontent.com/4rm/Appstream-User-Manager/master/version.txt')
+        r=requests.get(url="https://api.github.com/repos/4rm/Appstream-User-Manager/releases/latest").json()
 
-        web_version=float(response.data.decode('utf-8'))
+        web_version=float(r['tag_name'][1:])
 
         def download():
             webbrowser.open('https://github.com/4rm/Appstream-User-Manager/releases')
-            sys.exit()
+            available_update.destroy()
 
         if web_version > local_version:
             available_update=tk.Toplevel()
+            if "nt" == os.name:
+                available_update.iconbitmap(self.resource_path('images/icon.ico'))
             available_update.wm_title('Updates are available')
             info_frame=tk.Frame(available_update)
             info_frame.pack(padx=10, pady=10)
-            message=tk.Label(info_frame, text="New update is available",
+            message=tk.Label(info_frame, text="New update is available: "
+                             + r['tag_name'],
                              font=(None,14))
-            message.pack(pady=(0,10))
+            message.pack()
+            yours=tk.Label(info_frame, text="Your version: v"
+                           + str(local_version),
+                           font=(None, 9),
+                           foreground="red")
+            yours.pack()
+            update_info=ScrolledText(info_frame, height=8, width=60)
+            update_info.insert(tk.END, r['body'])
+            update_info.config(state=tk.DISABLED)
+            update_info.pack(pady=(0,10))
             button_frame=tk.Frame(info_frame)
             button_frame.pack()
             Download_button=tk.Button(button_frame, text="Download",
@@ -150,8 +161,7 @@ class CredentialsFrame(tk.Frame):
                 aws_secret_access_key=secret_key.get(),
                 region_name=region_key.get()
             )
-            root.attributes('-topmost', 1)
-            #root.attributes('-topmost', 0)
+            root.lift()
             popup.destroy()
         
         #popup defined in MainApplication
@@ -990,7 +1000,6 @@ class MainFrame(tk.Frame):
         self.user_scrollbar_name=self.scrollbar 
 
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
-        #canvas.bind("<Configure>", framewidth)
 
         self.frame=tk.Frame(self.canvas)
         self.canvas_frame=self.canvas.create_window((0,0), window=self.frame, anchor='nw')
