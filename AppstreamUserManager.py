@@ -497,7 +497,7 @@ class MainFrame(tk.Frame):
                         disabled+=1
                 bulk_mail_canvas.update()
                 bulk_mail_canvas.yview_moveto(1)
-                time.sleep(1)
+                time.sleep(0.5)
             mail_results_frame=tk.Frame(bulk_mail_popup)
             mail_results_frame.pack(side=tk.BOTTOM)
             results=tk.Label(mail_results_frame, text=str(successes)
@@ -622,9 +622,7 @@ class MainFrame(tk.Frame):
                     error_label.pack()
                     okay_button=tk.Button(error, text="Okay", command=lambda:error.destroy())
                     okay_button.pack(anchor=tk.CENTER)
-                time.sleep(2)
-                parent.user_list=[]
-                parent.GetUserList()
+                time.sleep(0.5)
                 for stack in parent.stacks:
                     if stack['var2'].get()==1:
                         parent.client.batch_associate_user_stack(UserStackAssociations=[{
@@ -638,8 +636,7 @@ class MainFrame(tk.Frame):
                 add_individual_LastName_entry.delete(0, tk.END)
                 add_individual_UserName_entry.delete(0, tk.END)
                 add_individual_FirstName_entry.delete(0, tk.END)
-                
-                search('',parent.user_list)
+                reload()
             elif add_roster.get()==1:
                 try:
                     add_roster_success_popup=tk.Toplevel()
@@ -670,11 +667,17 @@ class MainFrame(tk.Frame):
                     add_roster_frame.bind('<Configure>', lambda event:on_configure(event,add_roster_canvas))
                     add_roster_canvas.bind("<Enter>", lambda event:_on_mousewheel(event,add_roster_canvas))
                     add_roster_canvas.bind("<Leave>", lambda event:_off_mousewheel(event,add_roster_canvas))
+
+                    errors=0
+                    successes=0
+
+                    new_accounts=[]
+                    
                     for student in parent.roster:
                         account=tk.Frame(add_roster_frame)
                         account.pack(anchor=tk.W)
                         added=tk.Label(account, text=student['User Name']+' - ')
-                        added.pack(side=tk.LEFT)
+                        added.pack(side=tk.LEFT, anchor=tk.N)
                         try:
                             parent.client.create_user(UserName=student['User Name'],
                                                       FirstName=student['First Name'],
@@ -683,23 +686,43 @@ class MainFrame(tk.Frame):
                                                       )
                         except Exception as e:
                             print(e)
-                            error=tk.Label(account, text=str(e), foreground='red')
-                            error.pack(side=tk.LEFT)
+                            added_roster_account=tk.Label(account, text=str(e), foreground='red')
+                            added_roster_account.pack(side=tk.LEFT)
+                            errors+=1
                         else:
-                            added_roster_account=tk.Label(account, text="Added successfully",foreground="green")
-                            added_roster_account.pack(anchor=tk.W)
+                            added_roster_account=tk.Label(account, text="Account added successfully",
+                                                          foreground="green",
+                                                          justify=tk.LEFT)
+                            added_roster_account.pack(anchor=tk.N)
+                            successes+=1
+                        new_accounts.append(added_roster_account)
                         add_roster_canvas.update()
                         add_roster_canvas.yview_moveto(1)
-                        time.sleep(1)
+                        time.sleep(0.5)
                     for stack in parent.stacks:
+                        add_roster_canvas.yview_moveto(0)
                         if stack['var2'].get()==1:
-                            for student in parent.roster:
-                                parent.client.batch_associate_user_stack(UserStackAssociations=[{
-                                    'StackName':stack['Name'],
-                                    'UserName':student['User Name'],
-                                    'AuthenticationType':"USERPOOL",
-                                    'SendEmailNotification':True
-                                    }])
+                            for i,student in enumerate(parent.roster):
+                                current_message=new_accounts[i].cget('text')
+                                try:
+                                    parent.client.batch_associate_user_stack(UserStackAssociations=[{
+                                        'StackName':stack['Name'],
+                                        'UserName':student['User Name'],
+                                        'AuthenticationType':"USERPOOL",
+                                        'SendEmailNotification':True
+                                        }])
+                                except Exception as e:
+                                    print(e)
+                                    errors+=1
+                                else:
+                                    new_accounts[i].configure(text=current_message
+                                                                   +'\n'+stack['Name']
+                                                                   +' added')
+                                    successes+=1
+                                add_roster_canvas.yview_moveto(float(i/len(new_accounts)))
+                                add_roster_canvas.update()
+                                time.sleep(0.25)
+                                    
                             stack['var2'].set(0)
                     parent.roster.clear()
                     for child in self.r.winfo_children():
@@ -936,7 +959,7 @@ class MainFrame(tk.Frame):
                             successes+=1
                         bulk_canvas.update()
                         bulk_canvas.yview_moveto(1)
-                        time.sleep(1)
+                        time.sleep(0.5)
                 results_frame=tk.Frame(remove_success_popup)
                 results_frame.pack(side=tk.BOTTOM)
                 results=tk.Label(results_frame, text=str(successes)+' account(s) removed successfully.\n'+str(errors)+' error(s).')
@@ -993,7 +1016,7 @@ class MainFrame(tk.Frame):
                             successes+=1
                         removal_canvas.update()
                         removal_canvas.yview_moveto(1)
-                        time.sleep(1)
+                        time.sleep(0.5)
                 status_update=tk.Label(remove_all_nuke, text=str(successes)+" removed successfully. "+str(errors)+" error(s)")
                 status_update.pack(side=tk.BOTTOM)
                 remove_all_close=tk.Button(remove_all_nuke, text="Okay", command=lambda:remove_all_nuke.destroy())
