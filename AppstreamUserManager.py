@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import boto3
+import keyring
 import requests
 import webbrowser
 import pandas as pd
@@ -162,6 +163,16 @@ class CredentialsFrame(tk.Frame):
                 aws_secret_access_key=secret_key.get(),
                 region_name=region_key.get()
             )
+
+            if remember_me.get()==1:
+                keyring.set_password("Appstream_User_Manager", "Access Key", access_key.get())
+                keyring.set_password("Appstream_User_Manager", "Secret Access Key", secret_key.get())
+            elif remember_me.get()==0:
+                try:
+                    keyring.delete_password("Appstream_User_Manager", "Access Key")
+                    keyring.delete_password("Appstream_User_Manager", "Secret Access Key")
+                except Exception as e:
+                    print(e)
             root.lift()
             popup.destroy()
         
@@ -194,9 +205,22 @@ class CredentialsFrame(tk.Frame):
         region_key=tk.Entry(entry_frame, width=42)
         region_key.insert(tk.END, "us-east-1")
         region_key.pack(fill=tk.X)
-        
-        B1=ttk.Button(parent.popup, text="Okay", command = lambda:login(parent.popup))
-        B1.pack(side=tk.BOTTOM, anchor=tk.S, pady=(0,5))
+
+        button_frame=tk.Frame(parent.popup)
+        button_frame.pack(side=tk.BOTTOM, anchor=tk.S, pady=(0,5))
+        B1=ttk.Button(button_frame, text="Okay", command = lambda:login(parent.popup))
+        B1.pack(side=tk.LEFT)
+        remember_me=tk.IntVar()
+        save_check=tk.Checkbutton(button_frame, text="Remember me", variable=remember_me)
+        save_check.pack(side=tk.LEFT)
+
+        try:
+            access_key.insert(tk.END, keyring.get_password("Appstream_User_Manager", "Access Key"))
+            secret_key.insert(tk.END, keyring.get_password("Appstream_User_Manager", "Secret Access Key"))
+        except Exception as e:
+            print(e)
+        else:
+            save_check.select()
 
 class MainFrame(tk.Frame):
     def __init__(self, parent):
