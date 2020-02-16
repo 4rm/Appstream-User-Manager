@@ -55,8 +55,7 @@ Once your Access key has been made, you will be able to view your Secret Access 
 There are three main windows in the Appstream User Manager: Manage, add, remove
 
 ## <a name="Known">Known Issues</a>
-* Rate limiting happens <i>a lot</i>. Had to add 1 second delays all over the place.
+* Rate limiting happens <i>a lot</i>. Had to add delays all over the place.
 
 ## <a name="Future">Future Improvements</a>
-* Add a progress window for roster adding
 * General beautification (add icons, etc)

@@ -721,9 +721,22 @@ class MainFrame(tk.Frame):
                                     successes+=1
                                 add_roster_canvas.yview_moveto(float(i/len(new_accounts)))
                                 add_roster_canvas.update()
-                                time.sleep(0.25)
-                                    
+                                time.sleep(0.25)  
                             stack['var2'].set(0)
+
+                    roster_results_frame=tk.Frame(add_roster_success_popup)
+                    roster_results_frame.pack(side=tk.BOTTOM)
+                    results=tk.Label(roster_results_frame,
+                                     text=str(successes)
+                                     +' successful operation(s)'
+                                     +'\n'+str(errors)+' error(s)')
+                    results.pack()
+                    okay_button=tk.Button(roster_results_frame,text="Okay",
+                                          command=lambda:add_roster_success_popup.destroy(),
+                                          width=10)
+                    okay_button.pack(pady=5)
+                    roster_results_frame.update()
+                    
                     parent.roster.clear()
                     for child in self.r.winfo_children():
                         child.destroy()
@@ -732,6 +745,7 @@ class MainFrame(tk.Frame):
                     self.destroy_me.pack(side=tk.TOP, fill=tk.BOTH, anchor=tk.N, expand=True)
                     placeholder_canvas=tk.Canvas(self.destroy_me)
                     placeholder_canvas.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+                    reload()
                 except Exception as e:
                     print(e)
             elif add_roster.get()==0 and add_individual.get()==0:
