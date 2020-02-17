@@ -349,8 +349,6 @@ class MainFrame(tk.Frame):
                     p.create_text(150,0,text=u['LastName'],anchor=tk.NW)
                     p.create_text(295,0,text=u['UserName'],anchor=tk.NW)
                     p.bind("<1>", lambda event,u=u:click(event,u))
-            list_info=tk.Label(self.canvas, text="yo")
-            list_info.pack(anchor=tk.SW, side=tk.BOTTOM, fill=tk.X, expand=True)
                   
         def stack_apply(mode):
             def yeah():
@@ -1183,9 +1181,6 @@ class MainFrame(tk.Frame):
                 canvas2.create_text(295,0,text=i['UserName'],anchor=tk.NW)
                 canvas2.bind("<1>", lambda event,i=i:click(event,i))
         root.bind('<Return>',lambda event:search(search_field.get(),parent.user_list))
-
-        list_info=tk.Label(self.canvas, text="yo")
-        list_info.pack(anchor=tk.SW, side=tk.BOTTOM, fill=tk.X, expand=True)
 
 if __name__ == "__main__":
     root=tk.Tk()
