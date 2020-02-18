@@ -16,48 +16,51 @@ class MainApplication(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
-        local_version=2.0
+        self.local_version=2.0
 
-        r=requests.get(url="https://api.github.com/repos/4rm/Appstream-User-Manager/releases/latest").json()
+        try:
+            r=requests.get(url="https://api.github.com/repos/4rm/Appstream-User-Manager/releases/latest").json()
 
-        web_version=float(r['tag_name'][1:])
+            web_version=float(r['tag_name'][1:])
 
-        def download():
-            webbrowser.open('https://github.com/4rm/Appstream-User-Manager/releases')
-            available_update.destroy()
+            def download():
+                webbrowser.open('https://github.com/4rm/Appstream-User-Manager/releases')
+                available_update.destroy()
 
-        if web_version > local_version:
-            available_update=tk.Toplevel()
-            if "nt" == os.name:
-                available_update.iconbitmap(self.resource_path('images/icon.ico'))
-            available_update.wm_title('Updates are available')
-            info_frame=tk.Frame(available_update)
-            info_frame.pack(padx=10, pady=10)
-            message=tk.Label(info_frame, text="New update is available: "
-                             + r['tag_name'],
-                             font=(None,14))
-            message.pack()
-            yours=tk.Label(info_frame, text="Your version: v"
-                           + str(local_version),
-                           font=(None, 9),
-                           foreground="red")
-            yours.pack()
-            update_info=ScrolledText(info_frame, height=8, width=60)
-            update_info.insert(tk.END, r['body'])
-            update_info.config(state=tk.DISABLED)
-            update_info.pack(pady=(0,10))
-            button_frame=tk.Frame(info_frame)
-            button_frame.pack()
-            Download_button=tk.Button(button_frame, text="Download",
-                                      command=lambda:download())
-            Download_button.pack(side=tk.LEFT, padx=(0,10))
-            Later_button=tk.Button(button_frame, text="Maybe later",
-                                   command=lambda:available_update.destroy())
-            Later_button.pack(side=tk.LEFT)
-                                      
-            available_update.attributes('-topmost', 1)
-            available_update.lift()
-            root.wait_window(available_update)
+            if web_version > self.local_version:
+                available_update=tk.Toplevel()
+                if "nt" == os.name:
+                    available_update.iconbitmap(self.resource_path('images/icon.ico'))
+                available_update.wm_title('Updates are available')
+                info_frame=tk.Frame(available_update)
+                info_frame.pack(padx=10, pady=10)
+                message=tk.Label(info_frame, text="New update is available: "
+                                 + r['tag_name'],
+                                 font=(None,14))
+                message.pack()
+                yours=tk.Label(info_frame, text="Your version: v"
+                               + str(self.local_version),
+                               font=(None, 9),
+                               foreground="red")
+                yours.pack()
+                update_info=ScrolledText(info_frame, height=8, width=60)
+                update_info.insert(tk.END, r['body'])
+                update_info.config(state=tk.DISABLED)
+                update_info.pack(pady=(0,10))
+                button_frame=tk.Frame(info_frame)
+                button_frame.pack()
+                Download_button=tk.Button(button_frame, text="Download",
+                                          command=lambda:download())
+                Download_button.pack(side=tk.LEFT, padx=(0,10))
+                Later_button=tk.Button(button_frame, text="Maybe later",
+                                       command=lambda:available_update.destroy())
+                Later_button.pack(side=tk.LEFT)
+                                          
+                available_update.attributes('-topmost', 1)
+                available_update.lift()
+                root.wait_window(available_update)
+        except Exception as e:
+            print(e)
 
         root.title("Appstream User Manager")
         if "nt" == os.name:
@@ -537,6 +540,7 @@ class MainFrame(tk.Frame):
         #Initial window creation
 
         n=ttk.Notebook(root)
+        n.pack_propagate(0)
         n.pack(fill=tk.BOTH, expand=True)
         f1=tk.Frame(n)
         f2=tk.Frame(n)
@@ -544,6 +548,32 @@ class MainFrame(tk.Frame):
         n.add(f1, text="Manage")
         n.add(f2, text="Add")
         n.add(f3, text="Remove")
+
+        def about_info():
+            about_popup=tk.Toplevel()
+            about_popup.attributes('-topmost', 1)
+            about_popup.wm_title("About")
+            if "nt" == os.name:
+                about_popup.iconbitmap(parent.resource_path('images/icon.ico'))
+            about_popup.lift()
+            program_name=tk.Label(about_popup, text="Appstream User Manager v"+str(parent.local_version),font=(None,14))
+            program_name.pack()
+            logo_canvas=tk.Canvas(about_popup, width=300, height=180)
+            logo_canvas.pack()
+            self.logo=tk.PhotoImage(file=parent.resource_path('images/icon.gif'))
+            logo_canvas.create_image(150, 90, image=self.logo)
+            tagline=tk.Label(about_popup, text="Developed by Emilio Garcia\n2020\nIf the code works, don't question it")
+            tagline.pack(pady=0)
+            github=tk.Label(about_popup, text="Usage help and documentation",
+                            fg='blue', font=(None, -12, 'underline'),
+                            cursor='hand2')
+            github.pack(pady=(10,15))
+            github.bind("<1>", lambda event:webbrowser.open('https://github.com/4rm/Appstream-User-Manager'))
+            
+
+        about=tk.Label(n, text='?', cursor="hand2")
+        about.pack(side=tk.RIGHT, anchor=tk.N)
+        about.bind("<1>", lambda event:about_info())
 
         #Manage tab, pre-login
         user_pane=tk.Frame(f1)
@@ -563,7 +593,6 @@ class MainFrame(tk.Frame):
         header_pane.pack(fill=tk.X, padx=(1,0))
         first_name=tk.Label(header_pane, text="First Name", anchor=tk.W, width=20, font=(None, 9, 'bold'))
         first_name.pack(anchor=tk.W, side=tk.LEFT, fill=tk.X)
-
         last_name=tk.Label(header_pane, text="Last Name", anchor=tk.W, width=20, font=(None, 9, 'bold'))
         last_name.pack(anchor=tk.W, side=tk.LEFT, fill=tk.X)
         user_name=tk.Label(header_pane, text="Username", anchor=tk.W, width=26, font=(None, 9, 'bold'))
