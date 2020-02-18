@@ -168,8 +168,6 @@ class CredentialsFrame(tk.Frame):
                 region_name=region_key.get()
             )
 
-            keyring.set_keyring(Windows.WinVaultKeyring())
-
             if remember_me.get()==1:
                 keyring.set_password("Appstream_User_Manager", "Access Key", access_key.get())
                 keyring.set_password("Appstream_User_Manager", "Secret Access Key", secret_key.get())
@@ -195,6 +193,8 @@ class CredentialsFrame(tk.Frame):
 
         entry_frame=tk.Frame(data_frame)
         entry_frame.pack(side=tk.RIGHT)
+
+        keyring.set_keyring(Windows.WinVaultKeyring())
         
         access_label=ttk.Label(label_frame, text="Access Key ID:")
         access_label.pack(side="top", fill=tk.X)
