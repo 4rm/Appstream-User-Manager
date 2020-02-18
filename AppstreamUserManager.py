@@ -5,9 +5,9 @@ import boto3
 import keyring
 import requests
 import webbrowser
-import pandas as pd
 import tkinter as tk
 from tkinter import ttk
+from pandas import read_csv
 from tkinter import filedialog
 from keyring.backends import Windows
 from tkinter.scrolledtext import ScrolledText
@@ -820,7 +820,7 @@ class MainFrame(tk.Frame):
                                                     filetypes=(("CSV","*.csv"),
                                                                 ("All files","*.*")))
                 try:
-                    roster=pd.read_csv(file_loc, header=None)
+                    roster=read_csv(file_loc, header=None)
                     try:
                         self.destroy_me.destroy()
                         for child in self.r.winfo_children():
