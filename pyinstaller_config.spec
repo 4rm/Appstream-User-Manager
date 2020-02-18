@@ -6,7 +6,7 @@ block_cipher = None
 a = Analysis(['AppstreamUserManager.py'],
              pathex=['C:\\Users\\Emilio\\Desktop\\Appstream-User-Manager'],
              binaries=[],
-             datas=[],
+             datas=[('.\\images\\icon.gif','.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -31,6 +31,6 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False,
+          console=True,
 		  icon='.\\images\\icon.ico'
 			)

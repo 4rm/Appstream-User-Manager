@@ -9,6 +9,7 @@ import pandas as pd
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+from keyring.backends import Windows
 from tkinter.scrolledtext import ScrolledText
 
 class MainApplication(tk.Frame):
@@ -166,6 +167,8 @@ class CredentialsFrame(tk.Frame):
                 aws_secret_access_key=secret_key.get(),
                 region_name=region_key.get()
             )
+
+            keyring.set_keyring(Windows.WinVaultKeyring())
 
             if remember_me.get()==1:
                 keyring.set_password("Appstream_User_Manager", "Access Key", access_key.get())
