@@ -587,9 +587,20 @@ class MainFrame(tk.Frame):
         search_pane.pack(anchor=tk.N, fill=tk.X)
         search_field=tk.Entry(search_pane, font=(None, 12))
         search_field.pack(side=tk.LEFT, anchor=tk.N, fill=tk.BOTH, expand=True)
-        reload_button=tk.Button(search_pane, text=" r ", command=lambda:reload())
+        
+        self.refrsh=tk.PhotoImage(file=parent.resource_path('images/refresh.gif'))
+        self.refrsh=self.refrsh.subsample(3,3)
+        reload_button=tk.Button(search_pane,
+                                image=self.refrsh,
+                                command=lambda:reload(),
+                                width=20, height=20)
         reload_button.pack(side=tk.RIGHT, anchor=tk.N)
-        search_button=tk.Button(search_pane, text=" s ")
+
+        self.srch_img=tk.PhotoImage(file=parent.resource_path('images/search.gif'))
+        self.srch_img=self.srch_img.subsample(3,3)
+        search_button=tk.Button(search_pane,
+                                image=self.srch_img,
+                                width=20, height=20)
         search_button.pack(side=tk.RIGHT, anchor=tk.N)
 
         header_pane=tk.Frame(user_pane)
