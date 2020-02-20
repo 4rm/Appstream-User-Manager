@@ -684,25 +684,54 @@ class MainFrame(tk.Frame):
                     if "nt" == os.name:
                         error.iconbitmap(parent.resource_path('images/icon.ico'))
                     error.lift()
-                    error_label=tk.Label(error, text=e)
+                    error_label=tk.Label(error, text=e, foreground='red')
                     error_label.pack()
                     okay_button=tk.Button(error, text="Okay", command=lambda:error.destroy())
                     okay_button.pack(anchor=tk.CENTER)
-                time.sleep(0.5)
-                for stack in parent.stacks:
-                    if stack['var2'].get()==1:
-                        parent.client.batch_associate_user_stack(UserStackAssociations=[{
-                            'StackName':stack['Name'],
-                            'UserName':add_individual_UserName_entry.get(),
-                            'AuthenticationType':"USERPOOL",
-                            'SendEmailNotification':True
-                            }])
-                        stack['var2'].set(0)
-                        
-                add_individual_LastName_entry.delete(0, tk.END)
-                add_individual_UserName_entry.delete(0, tk.END)
-                add_individual_FirstName_entry.delete(0, tk.END)
-                reload()
+                else:
+                    time.sleep(2)
+                    errors=[]
+                    for stack in parent.stacks:
+                        if stack['var2'].get()==1:
+                            try:
+                                parent.client.batch_associate_user_stack(UserStackAssociations=[{
+                                    'StackName':stack['Name'],
+                                    'UserName':add_individual_UserName_entry.get(),
+                                    'AuthenticationType':"USERPOOL",
+                                    'SendEmailNotification':True
+                                    }])
+                                stack['var2'].set(0)
+                            except Exception as e:
+                                errors.append(e)
+                    if len(errors)>0:
+                        stack_error=tk.Toplevel()
+                        stack_error.attributes('-topmost', 1)
+                        stack_error.wm_title("Error")
+                        if "nt" == os.name:
+                            stack_error.iconbitmap(parent.resource_path('images/icon.ico'))
+                        stack_error.lift()
+                        stack_error_label=tk.Label(stack_error, text=errors, foreground='red')
+                        stack_error_label.pack()
+                        stack_okay_button=tk.Button(stack_error, text="Okay", command=lambda:stack_error.destroy())
+                        stack_okay_button.pack(anchor=tk.CENTER)
+                    else:
+                        success=tk.Toplevel()
+                        success.attributes('-topmost', 1)
+                        success.wm_title("Success")
+                        if "nt" == os.name:
+                            success.iconbitmap(parent.resource_path('images/icon.ico'))
+                        success.lift()
+                        success_label=tk.Label(success,
+                                               text=add_individual_UserName_entry.get()+" added successfully"
+                                               )
+                        success_label.pack()
+                        success_okay_button=tk.Button(success, text="Okay", command=lambda:success.destroy())
+                        success_okay_button.pack(anchor=tk.CENTER)
+                            
+                    add_individual_LastName_entry.delete(0, tk.END)
+                    add_individual_UserName_entry.delete(0, tk.END)
+                    add_individual_FirstName_entry.delete(0, tk.END)
+                    reload()
             elif add_roster.get()==1:
                 try:
                     add_roster_success_popup=tk.Toplevel()
