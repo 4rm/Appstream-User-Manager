@@ -9,6 +9,7 @@ import tkinter as tk
 from tkinter import ttk
 from pandas import read_csv
 from tkinter import filedialog
+from botocore.config import Config
 from keyring.backends import Windows
 from tkinter.scrolledtext import ScrolledText
 
@@ -161,11 +162,14 @@ class CredentialsFrame(tk.Frame):
                 self.login_warning=tk.Label(popup, text=e, foreground="red", wraplength=325)
                 self.login_warning.pack(pady=(0,5))
                 return
+
+            config=Config(retries=dict(max_attempts=20))
             
             parent.client = boto3.client('appstream', 
                 aws_access_key_id=access_key.get(),
                 aws_secret_access_key=secret_key.get(),
-                region_name=region_key.get()
+                region_name=region_key.get(),
+                config=config
             )
 
             if remember_me.get()==1:
@@ -526,7 +530,7 @@ class MainFrame(tk.Frame):
                         disabled+=1
                 bulk_mail_canvas.update()
                 bulk_mail_canvas.yview_moveto(1)
-                time.sleep(0.5)
+                time.sleep(1)
             mail_results_frame=tk.Frame(bulk_mail_popup)
             mail_results_frame.pack(side=tk.BOTTOM)
             results=tk.Label(mail_results_frame, text=str(successes)
@@ -793,7 +797,7 @@ class MainFrame(tk.Frame):
                         new_accounts.append(added_roster_account)
                         add_roster_canvas.update()
                         add_roster_canvas.yview_moveto(1)
-                        time.sleep(0.5)
+                        time.sleep(1)
                     for stack in parent.stacks:
                         add_roster_canvas.yview_moveto(0)
                         if stack['var2'].get()==1:
@@ -816,7 +820,7 @@ class MainFrame(tk.Frame):
                                     successes+=1
                                 add_roster_canvas.yview_moveto(float(i/len(new_accounts)))
                                 add_roster_canvas.update()
-                                time.sleep(0.25)  
+                                time.sleep(1)  
                             stack['var2'].set(0)
 
                     roster_results_frame=tk.Frame(add_roster_success_popup)
@@ -1068,7 +1072,7 @@ class MainFrame(tk.Frame):
                             successes+=1
                         bulk_canvas.update()
                         bulk_canvas.yview_moveto(1)
-                        time.sleep(0.5)
+                        time.sleep(1)
                 results_frame=tk.Frame(remove_success_popup)
                 results_frame.pack(side=tk.BOTTOM)
                 results=tk.Label(results_frame, text=str(successes)+' account(s) removed successfully.\n'+str(errors)+' error(s).')
@@ -1125,7 +1129,7 @@ class MainFrame(tk.Frame):
                             successes+=1
                         removal_canvas.update()
                         removal_canvas.yview_moveto(1)
-                        time.sleep(0.5)
+                        time.sleep(1)
                 status_update=tk.Label(remove_all_nuke, text=str(successes)+" removed successfully. "+str(errors)+" error(s)")
                 status_update.pack(side=tk.BOTTOM)
                 remove_all_close=tk.Button(remove_all_nuke, text="Okay", command=lambda:remove_all_nuke.destroy())
