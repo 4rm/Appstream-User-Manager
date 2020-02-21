@@ -63,7 +63,7 @@ There are three main windows in the Appstream User Manager: Manage, Add, and Rem
 <img src="https://i.imgur.com/kIVomoj.png" alt="Manage tab" width=600>
 </p>
 
-From the Manage tab, you can search for users via first or last name, or email address. When a user is selected, they will appear in the User Info Pane, which will tell you what stacks are associated with said user. You also have the option of resending a welcome email to them if they haven't yet registered a password.
+From the Manage tab, you can search for users via first or last name, or email address. When a user is selected, they will appear in the User Info Pane, which will tell you what stacks are associated with said user. You also have the option of resending a welcome email the user hasn't yet registered a password (temp passwords from account creation emails expire after 7 days).
 
 You also have the option of Setting, Adding, or Removing stacks from the user's account. "Setting" the stacks means checked stacks will be added, and unchecked stacks will be removed. "Adding" will just add selected stacks, and "Removing" will just remove selected stacks. You also have the option of sending a notification email.
 
@@ -86,14 +86,14 @@ From the Add tab, users can be added individually or by roster. The roster forma
   <i>Standard REGIS .csv</i>
 </p>
 
-Selected stacks will be associated with the added users, whether by roster or individual addition.
+Selected stacks will be associated with the added users, whether by roster or individual addition. Please note that usernames are case-sensitive.
 
 #### <a name="Remove">Remove</a>
 <p align="center">
 <img src="https://i.imgur.com/KDSEv4u.png" alt="Remove tab" width=600>
 </p>
 
-From the Remove tab, specific users can be removed using Batch Remove, or the entire user list can be deleted (with exceptions) from Remove All.
+From the Remove tab, specific users can be removed using Batch Remove, or the entire user list can be deleted (with exceptions) from Remove All. User accounts cannot be recovered, but their data should remain in their S3 bucket.
                                                                      
 ## <a name="Known">Known Issues</a>
 * Rate limiting happens <i>a lot</i>. Had to add delays all over the place.
