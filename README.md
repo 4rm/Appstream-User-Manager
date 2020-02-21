@@ -26,7 +26,11 @@ GUI alternative to managing Appstream users
 <table>
   <tr>
   <td><a href="https://github.com/exhuma/puresnmp">Boto 3</a> (1.10.46) </td>
-    <td>AWS SDK for Python </td>
+    <td>AWS SDK for Python </td><tr>
+    <td><a href="https://pypi.org/project/keyring/">Keyring</a> (18.0.0)</td>
+  <td>Communicating with native OS keychain</td></tr><tr>
+  <td><a href="https://pandas.pydata.org/">Pandas</a> (1.0.1)</td>
+  <td>Data analysis tool</td>
   </tr>
 </table>
 
