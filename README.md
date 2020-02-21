@@ -2,8 +2,19 @@
 
 GUI alternative to managing Appstream users \#UNDER CONSTRUCTION\#
 <p align="center">
-<img src="https://thumbs.gfycat.com/ThinUnfitBadger-size_restricted.gif" alt="screenshot">
+  <div class="foo">
+  <table>
+    <tr>
+      <td>
+        <img src="https://thumbs.gfycat.com/ThinUnfitBadger-size_restricted.gif" alt="screenshot">
+      </td>
+    </tr>
+    </div>
 </p>
+
+.foo table {
+  border: 1px solid black;
+}
 
 <table>
 <tr><td><ul>
