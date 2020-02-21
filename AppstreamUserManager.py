@@ -21,6 +21,7 @@ class MainApplication(tk.Frame):
         self.local_version=2.0
 
         try:
+            #Check if there's an updated version
             r=requests.get(url="https://api.github.com/repos/4rm/Appstream-User-Manager/releases/latest").json()
 
             web_version=float(r['tag_name'][1:])
@@ -90,6 +91,7 @@ class MainApplication(tk.Frame):
     def GetUserList(self,*args):
         if self.client is not None:
             if len(args):
+                #If a NextToken was passed as an argument, use it to get the next page
                 user_page=self.client.describe_users(AuthenticationType='USERPOOL', NextToken=args[0])
             else:
                 user_page=self.client.describe_users(AuthenticationType='USERPOOL')
@@ -116,6 +118,7 @@ class MainApplication(tk.Frame):
                 load.destroy()
 
     def GetStacks(self):
+        #Get two variables per stack, for the Manage and Add frame
         if self.client is not None:
             for stack in self.client.describe_stacks()['Stacks']:
                 var=tk.IntVar()
@@ -148,8 +151,11 @@ class CredentialsFrame(tk.Frame):
             self.blank_warning=tk.Label(popup, text="Fields cannot be left blank",  foreground="red")
             
             if not all((access_key.get(), secret_key.get(), region_key.get())):
+                #No field can be left blank
                 self.blank_warning.pack()
                 return
+            
+            #Create a "test_client" object to verify keys
             test_client = boto3.client('appstream', 
                 aws_access_key_id=access_key.get(),
                 aws_secret_access_key=secret_key.get(),
@@ -163,6 +169,9 @@ class CredentialsFrame(tk.Frame):
                 self.login_warning.pack(pady=(0,5))
                 return
 
+            #Batch jobs lend themselves to rate limiting
+            #increase the number of allowed tries
+            #AWS already implements exponential backoff
             config=Config(retries=dict(max_attempts=20))
             
             parent.client = boto3.client('appstream', 
@@ -172,6 +181,7 @@ class CredentialsFrame(tk.Frame):
                 config=config
             )
 
+            #Write the keys to the OS keyring, if wanted
             if remember_me.get()==1:
                 keyring.set_password("Appstream_User_Manager", "Access Key", access_key.get())
                 keyring.set_password("Appstream_User_Manager", "Secret Access Key", secret_key.get())
