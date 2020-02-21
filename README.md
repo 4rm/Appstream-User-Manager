@@ -1,8 +1,9 @@
 <img src="https://i.imgur.com/Ht86JYX.png" alt="Logo" width=450>
 
-GUI alternative to managing Appstream users \#UNDER CONSTRUCTION\#
-
-<img src="https://i.imgur.com/eeLyia7.jpg" alt="screenshot">
+GUI alternative to managing Appstream users
+<p align="center">
+<img src="https://thumbs.gfycat.com/UnkemptSerpentineKiwi-size_restricted.gif" alt="screenshot">
+</p>
 
 <table>
 <tr><td><ul>
@@ -11,6 +12,9 @@ GUI alternative to managing Appstream users \#UNDER CONSTRUCTION\#
 <li><a href="#How">How it works</a></li>
   <ul><li><a href="#GettingStart">Getting Started</a></li>
     <li><a href="#Usage">Usage</a></li>
+    <ul><li><a href="#Manage">Manage</a></li>
+      <li><a href="Add">Add</a></li>
+    <li><a href="Remove">Remove</a></li></ul>
   </ul>
 <li><a href="#Known">Known Issues</a></li>
 <li><a href="#Future">Future Improvements</a></li>
@@ -52,10 +56,47 @@ Once your Access key has been made, you will be able to view your Secret Access 
 
 ### <a name="Usage">Usage</a>
 
-There are three main windows in the Appstream User Manager: Manage, add, remove
+There are three main windows in the Appstream User Manager: Manage, Add, and Remove
 
+#### <a name="Manage">Manage</a>
+<p align="center">
+<img src="https://i.imgur.com/kIVomoj.png" alt="Manage tab" width=600>
+</p>
+
+From the Manage tab, you can search for users via first or last name, or email address. When a user is selected, they will appear in the User Info Pane, which will tell you what stacks are associated with said user. You also have the option of resending a welcome email to them if they haven't yet registered a password.
+
+You also have the option of Setting, Adding, or Removing stacks from the user's account. "Setting" the stacks means checked stacks will be added, and unchecked stacks will be removed. "Adding" will just add selected stacks, and "Removing" will just remove selected stacks. You also have the option of sending a notification email.
+
+<p align="center">
+  <img src="https://i.imgur.com/1hFIvFd.png" alt="Set example" width=400>
+  <br>
+  <i>What you'll see when "Setting" stacks</i>
+</p>
+
+#### <a name="Add">Add</a>
+<p align="center">
+<img src="https://i.imgur.com/p4N2k0J.png" alt="Add tab" width=600>
+</p>
+
+From the Add tab, users can be added individually or by roster. The roster format follows the standard Rutgers REGIS format.
+
+<p align="center">
+  <img src="https://i.imgur.com/Yp12m7P.png" alt="roster example" width=400>
+  <br>
+  <i>Standard REGIS .csv</i>
+</p>
+
+Selected stacks will be associated with the added users, whether by roster or individual addition.
+
+#### <a name="Remove">Remove</a>
+<p align="center">
+<img src="https://i.imgur.com/KDSEv4u.png" alt="Remove tab" width=600>
+</p>
+
+From the Remove tab, specific users can be removed using Batch Remove, or the entire user list can be deleted (with exceptions) from Remove All.
+                                                                     
 ## <a name="Known">Known Issues</a>
 * Rate limiting happens <i>a lot</i>. Had to add delays all over the place.
 
 ## <a name="Future">Future Improvements</a>
-* General beautification (add icons, etc)
+* Reduce .exe filesize
