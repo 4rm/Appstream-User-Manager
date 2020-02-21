@@ -2,7 +2,7 @@
 
 GUI alternative to managing Appstream users \#UNDER CONSTRUCTION\#
 <p align="center">
-<img src="https://thumbs.gfycat.com/AdvancedOfficialAsianpiedstarling-size_restricted.gif" alt="screenshot">
+<img src="https://thumbs.gfycat.com/UnkemptSerpentineKiwi-size_restricted.gif" alt="screenshot">
 </p>
 
 <table>
@@ -59,4 +59,4 @@ There are three main windows in the Appstream User Manager: Manage, add, remove
 * Rate limiting happens <i>a lot</i>. Had to add delays all over the place.
 
 ## <a name="Future">Future Improvements</a>
-* General beautification (add icons, etc)
+* Reduce .exe filesize
