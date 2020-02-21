@@ -1,8 +1,9 @@
 <img src="https://i.imgur.com/Ht86JYX.png" alt="Logo" width=450>
 
 GUI alternative to managing Appstream users \#UNDER CONSTRUCTION\#
-
-<img src="https://i.imgur.com/eeLyia7.jpg" alt="screenshot">
+<p align="center">
+<img src="https://thumbs.gfycat.com/PoisedNaiveIbis-size_restricted.gif" alt="screenshot">
+</p>
 
 <table>
 <tr><td><ul>
