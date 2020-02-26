@@ -2,7 +2,7 @@
 
 GUI alternative to managing Appstream users
 <p align="center">
-<img src="https://thumbs.gfycat.com/UnkemptSerpentineKiwi-size_restricted.gif" alt="screenshot" width=500>
+<img src="https://thumbs.gfycat.com/UnkemptSerpentineKiwi-size_restricted.gif" height=450 alt="screenshot">
 </p>
 
 <table>
