@@ -2,7 +2,7 @@
 
 GUI alternative to managing Appstream users
 <p align="center">
-<img src="https://thumbs.gfycat.com/UnkemptSerpentineKiwi-size_restricted.gif" height=450 alt="screenshot">
+<img src="https://thumbs.gfycat.com/UnkemptSerpentineKiwi-size_restricted.gif" height=400 alt="screenshot">
 </p>
 
 <table>
@@ -103,4 +103,4 @@ From the Remove tab, specific users can be removed using Batch Remove, or the en
 * Rate limiting happens <i>a lot</i>. Had to add delays all over the place.
 
 ## <a name="Future">Future Improvements</a>
-* Reduce .exe filesize
+* Add user count
