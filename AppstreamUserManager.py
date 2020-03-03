@@ -1,4 +1,5 @@
 import os
+import csv
 import sys
 import time
 import boto3
@@ -7,10 +8,6 @@ import requests
 import webbrowser
 import tkinter as tk
 from tkinter import ttk
-
-#from pandas import read_csv
-import csv
-
 from tkinter import filedialog
 from botocore.config import Config
 from keyring.backends import Windows
@@ -21,19 +18,39 @@ class MainApplication(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
-        self.local_version=2.0
+        self.local_version='2.1'
 
         try:
             #Check if there's an updated version
             r=requests.get(url="https://api.github.com/repos/4rm/Appstream-User-Manager/releases/latest").json()
 
-            web_version=float(r['tag_name'][1:])
+            web_version=r['tag_name'][1:]
 
             def download():
                 webbrowser.open('https://github.com/4rm/Appstream-User-Manager/releases')
                 available_update.destroy()
+                root.destroy()
 
-            if web_version > self.local_version:
+            def newVersionExists(web, current):
+                web=web.split('.')
+                current=current.split('.')
+                for i in range(max(len(web), len(current))):
+                        while True:
+                                try:
+                                        if web[i]>current[i]:
+                                                return True
+                                        elif web[i]<current[i]:
+                                                return False
+                                except:
+                                        if len(web)>len(current):
+                                                current.append('0')
+                                        else:
+                                                web.append('0')
+                                else:
+                                        break
+                return False
+
+            if newVersionExists(web_version, self.local_version):
                 available_update=tk.Toplevel()
                 if "nt" == os.name:
                     available_update.iconbitmap(self.resource_path('images/icon.ico'))
@@ -45,20 +62,22 @@ class MainApplication(tk.Frame):
                                  font=(None,14))
                 message.pack()
                 yours=tk.Label(info_frame, text="Your version: v"
-                               + str(self.local_version),
+                               + self.local_version,
                                font=(None, 9),
                                foreground="red")
                 yours.pack()
+                changes=tk.Label(info_frame, text="Changes: ")
+                changes.pack(anchor=tk.W, pady=(10,0))
                 update_info=ScrolledText(info_frame, height=8, width=60)
                 update_info.insert(tk.END, r['body'])
                 update_info.config(state=tk.DISABLED)
                 update_info.pack(pady=(0,10))
                 button_frame=tk.Frame(info_frame)
                 button_frame.pack()
-                Download_button=tk.Button(button_frame, text="Download",
+                Download_button=tk.Button(button_frame, text="Download", width=15,
                                           command=lambda:download())
-                Download_button.pack(side=tk.LEFT, padx=(0,10))
-                Later_button=tk.Button(button_frame, text="Maybe later",
+                Download_button.pack(side=tk.LEFT)
+                Later_button=tk.Button(button_frame, text="Maybe later", width=15,
                                        command=lambda:available_update.destroy())
                 Later_button.pack(side=tk.LEFT)
                                           
@@ -68,7 +87,14 @@ class MainApplication(tk.Frame):
         except Exception as e:
             print(e)
 
-        root.title("Appstream User Manager")
+        try:
+            root.title("Appstream User Manager")
+        except:
+            #If the program gets to this point and root has been destroyed,
+            #we want to exit the program. This avoids exiting with a non-zero
+            #crash code
+            sys.exit(0)
+            
         if "nt" == os.name:
             root.iconbitmap(self.resource_path('images/icon.ico'))
 
@@ -358,20 +384,40 @@ class MainFrame(tk.Frame):
                         if search.lower() in name_data.lower():
                             p=tk.Canvas(f,width=500, height=17,highlightthickness=0)
                             p.pack()
-                            p.create_text(3,0,text=u['FirstName'],anchor=tk.NW)
-                            p.create_text(150,0,text=u['LastName'],anchor=tk.NW)
-                            p.create_text(295,0,text=u['UserName'],anchor=tk.NW)
+                            FirstName=p.create_text(3,0,text=u['FirstName'],anchor=tk.NW)
+                            LastName=p.create_text(150,0,text=u['LastName'],anchor=tk.NW)
+                            UserName=p.create_text(295,0,text=u['UserName'],anchor=tk.NW)
                             p.bind("<1>", lambda event,u=u:click(event,u))
+                            if u['Status'] == 'FORCE_CHANGE_PASSWORD':
+                                new_fill='#828282'
+                                p.itemconfigure(FirstName, fill=new_fill)
+                                p.itemconfigure(LastName, fill=new_fill)
+                                p.itemconfigure(UserName, fill=new_fill)
+                            if u['Enabled'] == False:
+                                new_fill='#ff3c3c'
+                                p.itemconfigure(FirstName, fill=new_fill)
+                                p.itemconfigure(LastName, fill=new_fill)
+                                p.itemconfigure(UserName, fill=new_fill)
                     except:
                         None
             elif len(search)==0:
                 for u in users:
                     p=tk.Canvas(f,width=500, height=17,highlightthickness=0)
                     p.pack()
-                    p.create_text(3,0,text=u['FirstName'],anchor=tk.NW)
-                    p.create_text(150,0,text=u['LastName'],anchor=tk.NW)
-                    p.create_text(295,0,text=u['UserName'],anchor=tk.NW)
+                    FirstName=p.create_text(3,0,text=u['FirstName'],anchor=tk.NW)
+                    LastName=p.create_text(150,0,text=u['LastName'],anchor=tk.NW)
+                    UserName=p.create_text(295,0,text=u['UserName'],anchor=tk.NW)
                     p.bind("<1>", lambda event,u=u:click(event,u))
+                    if u['Status'] == 'FORCE_CHANGE_PASSWORD':
+                        new_fill='#828282'
+                        p.itemconfigure(FirstName, fill=new_fill)
+                        p.itemconfigure(LastName, fill=new_fill)
+                        p.itemconfigure(UserName, fill=new_fill)
+                    if u['Enabled'] == False:
+                        new_fill='#ff3c3c'
+                        p.itemconfigure(FirstName, fill=new_fill)
+                        p.itemconfigure(LastName, fill=new_fill)
+                        p.itemconfigure(UserName, fill=new_fill)
                   
         def stack_apply(mode):
             def yeah():
@@ -576,7 +622,7 @@ class MainFrame(tk.Frame):
             if "nt" == os.name:
                 about_popup.iconbitmap(parent.resource_path('images/icon.ico'))
             about_popup.lift()
-            program_name=tk.Label(about_popup, text="Appstream User Manager v"+str(parent.local_version),font=(None,14))
+            program_name=tk.Label(about_popup, text="Appstream User Manager v"+parent.local_version,font=(None,14))
             program_name.pack()
             logo_canvas=tk.Canvas(about_popup, width=300, height=180)
             logo_canvas.pack()
@@ -890,25 +936,6 @@ class MainFrame(tk.Frame):
                         print(e)
                 except Exception as e:
                     print(e)
-                
-##                stud_locate=[]
-##                nid_locate=[]
-##                for col in roster.columns:
-##                    for row in roster[col].items():
-##                        if "Student".lower() in str(row).lower():
-##                            nxt_val=roster.iloc[row[0]+1][col]
-##                            if nxt_val is not ('0' or "nan" or isinstance(nxt_val,str)):
-##                                stud_locate.append([row[0],col])
-##                            
-##                for col in roster.columns:
-##                    for row in roster[col].items():
-##                        if "Net ID".lower() in str(row).lower():
-##                            nxt_val=roster.iloc[row[0]+1][col]
-##                            if nxt_val is not ('0' or "nan" or not isinstance(nxt_val,str)):
-##                                nid_locate.append([row[0],col])
-##
-##                Students=roster[stud_locate[0][1]].tolist()[stud_locate[0][0]+1:]
-##                ids=roster[nid_locate[0][1]].tolist()[nid_locate[0][0]+1:]
 
                 Students=[]
                 ids=[]
@@ -1279,10 +1306,20 @@ class MainFrame(tk.Frame):
             for i in parent.user_list:
                 canvas2=tk.Canvas(self.frame,width=500, height=17,highlightthickness=0)
                 canvas2.pack()
-                canvas2.create_text(3,0,text=i['FirstName'],anchor=tk.NW)
-                canvas2.create_text(150,0,text=i['LastName'],anchor=tk.NW)
-                canvas2.create_text(295,0,text=i['UserName'],anchor=tk.NW)
+                FirstName=canvas2.create_text(3,0,text=i['FirstName'],anchor=tk.NW)
+                LastName=canvas2.create_text(150,0,text=i['LastName'],anchor=tk.NW)
+                UserName=canvas2.create_text(295,0,text=i['UserName'],anchor=tk.NW)
                 canvas2.bind("<1>", lambda event,i=i:click(event,i))
+                if i['Status'] == 'FORCE_CHANGE_PASSWORD':
+                    new_fill='#828282'
+                    canvas2.itemconfigure(FirstName, fill=new_fill)
+                    canvas2.itemconfigure(LastName, fill=new_fill)
+                    canvas2.itemconfigure(UserName, fill=new_fill)
+                if i['Enabled'] == False:
+                    new_fill='#ff3c3c'
+                    canvas2.itemconfigure(FirstName, fill=new_fill)
+                    canvas2.itemconfigure(LastName, fill=new_fill)
+                    canvas2.itemconfigure(UserName, fill=new_fill)
         root.bind('<Return>',lambda event:search(search_field.get(),parent.user_list))
 
 if __name__ == "__main__":
