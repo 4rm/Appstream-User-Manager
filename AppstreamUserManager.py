@@ -7,7 +7,10 @@ import requests
 import webbrowser
 import tkinter as tk
 from tkinter import ttk
-from pandas import read_csv
+
+#from pandas import read_csv
+import csv
+
 from tkinter import filedialog
 from botocore.config import Config
 from keyring.backends import Windows
@@ -874,7 +877,9 @@ class MainFrame(tk.Frame):
                                                     filetypes=(("CSV","*.csv"),
                                                                 ("All files","*.*")))
                 try:
-                    roster=read_csv(file_loc, header=None)
+                    #roster=read_csv(file_loc, header=None)
+                    roster_file=open(file_loc)
+                    roster=csv.reader(roster_file, delimiter=',')
                     try:
                         self.destroy_me.destroy()
                         for child in self.r.winfo_children():
@@ -886,24 +891,36 @@ class MainFrame(tk.Frame):
                 except Exception as e:
                     print(e)
                 
-                stud_locate=[]
-                nid_locate=[]
-                for col in roster.columns:
-                    for row in roster[col].items():
-                        if "Student".lower() in str(row).lower():
-                            nxt_val=roster.iloc[row[0]+1][col]
-                            if nxt_val is not ('0' or "nan" or isinstance(nxt_val,str)):
-                                stud_locate.append([row[0],col])
-                            
-                for col in roster.columns:
-                    for row in roster[col].items():
-                        if "Net ID".lower() in str(row).lower():
-                            nxt_val=roster.iloc[row[0]+1][col]
-                            if nxt_val is not ('0' or "nan" or not isinstance(nxt_val,str)):
-                                nid_locate.append([row[0],col])
+##                stud_locate=[]
+##                nid_locate=[]
+##                for col in roster.columns:
+##                    for row in roster[col].items():
+##                        if "Student".lower() in str(row).lower():
+##                            nxt_val=roster.iloc[row[0]+1][col]
+##                            if nxt_val is not ('0' or "nan" or isinstance(nxt_val,str)):
+##                                stud_locate.append([row[0],col])
+##                            
+##                for col in roster.columns:
+##                    for row in roster[col].items():
+##                        if "Net ID".lower() in str(row).lower():
+##                            nxt_val=roster.iloc[row[0]+1][col]
+##                            if nxt_val is not ('0' or "nan" or not isinstance(nxt_val,str)):
+##                                nid_locate.append([row[0],col])
+##
+##                Students=roster[stud_locate[0][1]].tolist()[stud_locate[0][0]+1:]
+##                ids=roster[nid_locate[0][1]].tolist()[nid_locate[0][0]+1:]
 
-                Students=roster[stud_locate[0][1]].tolist()[stud_locate[0][0]+1:]
-                ids=roster[nid_locate[0][1]].tolist()[nid_locate[0][0]+1:]
+                Students=[]
+                ids=[]
+                for line in roster:
+                    Students.append(line[3])
+                    ids.append(line[16])
+
+                Students=Students[3:]
+                ids=ids[3:]
+
+                print(Students)
+                print(ids)
 
                 for i,name in enumerate(Students):
                     new_name=name.split(' ',1)
