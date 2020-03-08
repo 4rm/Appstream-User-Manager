@@ -82,7 +82,9 @@ You also have the option of Setting, Adding, or Removing stacks from the user's 
 <img src="https://i.imgur.com/p4N2k0J.png" alt="Add tab" width=600>
 </p>
 
-From the Add tab, users can be added individually or by roster. The roster format follows the standard Rutgers REGIS format.
+From the Add tab, users can be added individually or by roster. Adding by roster requires the standard Rutgers REGIS format. The file must also be formatted as `.csv`
+
+REGIS-formatted rosters saved as `.xlsx` can be `save[d] as .csv` in excel and should work fine.
 
 <p align="center">
   <img src="https://i.imgur.com/Yp12m7P.png" alt="roster example" width=400>
