@@ -843,12 +843,22 @@ class MainFrame(tk.Frame):
                                                       AuthenticationType="USERPOOL"
                                                       )
                         except Exception as e:
-                            print(e)
-                            added_roster_account=tk.Label(account, text=str(e), foreground='red')
-                            added_roster_account.pack(side=tk.LEFT)
-                            errors+=1
+                            if "A user with that username already exists" in str(e):
+                                added_roster_account=tk.Label(account,
+                                                              text='User already exists',
+                                                              foreground='blue',
+                                                              justify=tk.LEFT)
+                                added_roster_account.pack(side=tk.LEFT)
+                            else:
+                                added_roster_account=tk.Label(account,
+                                                              text=str(e),
+                                                              foreground='red',
+                                                              justify=tk.LEFT)
+                                added_roster_account.pack(side=tk.LEFT)
+                                errors+=1
                         else:
-                            added_roster_account=tk.Label(account, text="Account added successfully",
+                            added_roster_account=tk.Label(account,
+                                                          text="Account added successfully",
                                                           foreground="green",
                                                           justify=tk.LEFT)
                             added_roster_account.pack(anchor=tk.N)
@@ -871,6 +881,7 @@ class MainFrame(tk.Frame):
                                         }])
                                 except Exception as e:
                                     print(e)
+                                    new_accounts[i].configure(text=current_message+'\n'+e, foreground='red')
                                     errors+=1
                                 else:
                                     new_accounts[i].configure(text=current_message
