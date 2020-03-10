@@ -106,3 +106,5 @@ From the Remove tab, specific users can be removed using Batch Remove, or the en
 
 ## <a name="Future">Future Improvements</a>
 * Add user count
+* Adding-users-with-stacks needs to consider that some users may already exist
+* Search by stack association
