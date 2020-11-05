@@ -1305,13 +1305,16 @@ class MainFrame(tk.Frame):
             for item in parent.stacks:
                 stack=tk.Checkbutton(stacks_frame, text=item['Name'], variable=item['var'])
                 stack2=tk.Checkbutton(new_user_stack_frame, text=item['Name'], variable=item['var2'])
-                if parent.client.describe_fleets(
-                    Names=[parent.client.list_associated_fleets(StackName=item['Name'])['Names'][0]]
-                    )['Fleets'][0]['State']=='STOPPED':
-                    #Set stack name to red if the associated fleet is stopped
-                    #Can stacks have multiple associated fleets?
-                    stack.configure(foreground="red",activeforeground="red")
-                    stack2.configure(foreground="red",activeforeground="red")
+                try:
+                    if parent.client.describe_fleets(
+                        Names=[parent.client.list_associated_fleets(StackName=item['Name'])['Names'][0]]
+                        )['Fleets'][0]['State']=='STOPPED':
+                        #Set stack name to red if the associated fleet is stopped
+                        #Can stacks have multiple associated fleets?
+                        stack.configure(foreground="red",activeforeground="red")
+                        stack2.configure(foreground="red",activeforeground="red")
+                except Exception as e:
+                    print(e)
                 stack.pack(anchor=tk.NW)
                 stack2.pack(side=tk.LEFT)
             for i in parent.user_list:
