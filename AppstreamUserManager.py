@@ -18,7 +18,7 @@ class MainApplication(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
-        self.local_version='2.1'
+        self.local_version='2.1.1'
 
         try:
             #Check if there's an updated version
@@ -628,7 +628,7 @@ class MainFrame(tk.Frame):
             logo_canvas.pack()
             self.logo=tk.PhotoImage(file=parent.resource_path('images/icon.gif'))
             logo_canvas.create_image(150, 90, image=self.logo)
-            tagline=tk.Label(about_popup, text="Developed by Emilio Garcia\n2020\nIf the code works, don't question it")
+            tagline=tk.Label(about_popup, text="Developed by Emilio Garcia\n2020\nДругого дома нет")
             tagline.pack(pady=0)
             github=tk.Label(about_popup, text="Usage help and documentation",
                             fg='blue', font=(None, -12, 'underline'),
