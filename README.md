@@ -5,7 +5,7 @@ GUI alternative to managing Appstream users
 <img src="https://thumbs.gfycat.com/UnkemptSerpentineKiwi-size_restricted.gif" height=400 alt="screenshot">
 </p>
 
-![UnkemptSerpentineKiwi-mobile](https://github.com/4rm/Appstream-User-Manager/assets/3399474/cba02b8f-10dd-46ee-a83b-c6ea29e89944)
+![ezgif-4-17fda344b8](https://github.com/4rm/Appstream-User-Manager/assets/3399474/1fcdf6fd-0a21-47fe-9e36-83ebf55c8c7d)
 
 <table>
 <tr><td><ul>
